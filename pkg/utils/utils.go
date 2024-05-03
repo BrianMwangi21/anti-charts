@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -31,7 +30,6 @@ func ValidateInput(input []string) (*analysis.AnalysisRequest, error) {
 		return nil, errors.New("Error compiling regex")
 	}
 
-	fmt.Println("interval got", interval)
 	if !r.MatchString(interval) {
 		return nil, errors.New("Interval entry is invalid")
 	}
