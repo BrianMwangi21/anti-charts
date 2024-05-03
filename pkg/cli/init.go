@@ -1,4 +1,4 @@
-package utils
+package cli
 
 import (
 	"fmt"
@@ -21,15 +21,17 @@ var (
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
-type model struct {
+type Model struct {
 	focusIndex int
 	inputs     []textinput.Model
 	cursorMode cursor.Mode
+	Submitted  bool
+	Values     []string
 }
 
-func InitModel() model {
-	m := model{
-		inputs: make([]textinput.Model, 2),
+func InitModel() Model {
+	m := Model{
+		inputs: make([]textinput.Model, 3),
 	}
 
 	var t textinput.Model
@@ -48,7 +50,9 @@ func InitModel() model {
 		case 1:
 			t.Prompt = "Please enter the time period in days : "
 			t.Placeholder = "Example 1 for 1 day, 10 for 10 days"
-			t.CharLimit = 64
+		case 2:
+			t.Prompt = "Please enter the candlestick intervals : "
+			t.Placeholder = "Example 15m for 15 minute intervals, 6h for 6 hour intervals"
 		}
 
 		m.inputs[i] = t
@@ -57,11 +61,11 @@ func InitModel() model {
 	return m
 }
 
-func (m model) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -72,6 +76,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			s := msg.String()
 
 			if s == "enter" && m.focusIndex == len(m.inputs) {
+				m.Submitted = true
+				m.Values = make([]string, len(m.inputs))
+				for i, input := range m.inputs {
+					m.Values[i] = input.Value()
+				}
 				return m, tea.Quit
 			}
 
@@ -109,7 +118,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *model) updateInputs(msg tea.Msg) tea.Cmd {
+func (m *Model) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(m.inputs))
 
 	for i := range m.inputs {
@@ -119,7 +128,7 @@ func (m *model) updateInputs(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m model) View() string {
+func (m Model) View() string {
 	var b strings.Builder
 
 	b.WriteString(titleStyle.Render("Welcome to Anti-Charts!\nGet all your chart info on your terminal! Blazingly fast."))
