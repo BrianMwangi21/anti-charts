@@ -1,32 +1,37 @@
 package analysis
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/charmbracelet/log"
 	"github.com/cinar/indicator"
 )
 
 func performMACD(closes []float64) string {
-	log.Info("Performing Moving Average Convergence Divergence...")
+	start := time.Now()
+	defer trackTime("Moving Average Convergence Divergence", start)
 	res := "MACD:: "
 	macd, signal := indicator.Macd(closes)
+	macdLen, signalLen := len(macd), len(signal)
 
-	if len(macd) > 0 && len(signal) > 0 {
-		macdLine := macd[len(macd)-1]
-		signalLine := signal[len(signal)-1]
+	if (macdLen > 0 && signalLen > 0) && (macdLen == signalLen) {
+		aboveCount, belowCount, neutralCount := 0, 0, 0
 
-		if macdLine > signalLine {
-			res += "MACD is above Signal Line"
-		} else if macdLine < signalLine {
-			res += "MACD is below Signal Line"
-		} else {
-			res += "MACD is equal to Signal Line"
+		for index, macdLine := range macd {
+			signalLine := signal[index]
+
+			if macdLine > signalLine {
+				aboveCount += 1
+			} else if macdLine < signalLine {
+				belowCount += 1
+			} else {
+				neutralCount += 1
+			}
 		}
 
-		if macdLine > 0 {
-			res += ", MACD above 0"
-		} else {
-			res += ", MACD below 0"
-		}
+		lastMacd := macd[macdLen-1]
+		res += fmt.Sprintf("MACD > Signal Line %d times, MACD < Singal Line %d times, Neutral %d times. Last MACD = %.2f", aboveCount, belowCount, neutralCount, lastMacd)
 	} else {
 		res += "Insufficient data"
 	}
@@ -35,21 +40,27 @@ func performMACD(closes []float64) string {
 }
 
 func performSMA(closes []float64, period int, latestPrice float64) string {
-	log.Info("Performing Simple Moving Average...")
+	start := time.Now()
+	defer trackTime("Simple Moving Average", start)
 	res := "SMA:: "
 	sma := indicator.Sma(period, closes)
 	smaLen := len(sma)
 
 	if smaLen > 0 {
-		lastSma := sma[smaLen-1]
+		aboveCount, belowCount, neutralCount := 0, 0, 0
 
-		if latestPrice > lastSma {
-			res += "Uptrend - Latest Price is above SMA"
-		} else if latestPrice < lastSma {
-			res += "Downtrend - Latest Price is below SMA"
-		} else {
-			res += "Neutral - Latest Price is at SMA level"
+		for _, value := range sma {
+			if value > latestPrice {
+				aboveCount += 1
+			} else if value < latestPrice {
+				belowCount += 1
+			} else {
+				neutralCount += 1
+			}
 		}
+
+		lastSma := sma[smaLen-1]
+		res += fmt.Sprintf("SMA > Latest Price %d times, SMA < Latest Price %d times, Neutral %d times. Last SMA = %.2f, Latest Price = %.2f", aboveCount, belowCount, neutralCount, lastSma, latestPrice)
 	} else {
 		res += "Insufficient data"
 	}
@@ -58,21 +69,27 @@ func performSMA(closes []float64, period int, latestPrice float64) string {
 }
 
 func performEMA(closes []float64, period int, latestPrice float64) string {
-	log.Info("Performing Exponential Moving Average...")
+	start := time.Now()
+	defer trackTime("Exponential Moving Average", start)
 	res := "EMA:: "
 	ema := indicator.Ema(period, closes)
 	emaLen := len(ema)
 
 	if emaLen > 0 {
-		lastEma := ema[emaLen-1]
+		aboveCount, belowCount, neutralCount := 0, 0, 0
 
-		if latestPrice > lastEma {
-			res += "Uptrend - Latest Price is above EMA"
-		} else if latestPrice < lastEma {
-			res += "Downtrend - Latest Price is below EMA"
-		} else {
-			res += "Neutral - Latest Price is at EMA level"
+		for _, value := range ema {
+			if value > latestPrice {
+				aboveCount += 1
+			} else if value < latestPrice {
+				belowCount += 1
+			} else {
+				neutralCount += 1
+			}
 		}
+
+		lastEma := ema[emaLen-1]
+		res += fmt.Sprintf("EMA > Latest Price %d times, EMA < Latest Price %d times, Neutral %d times. Last EMA = %.2f, Latest Price = %.2f", aboveCount, belowCount, neutralCount, lastEma, latestPrice)
 	} else {
 		res += "Insufficient data"
 	}
@@ -81,21 +98,27 @@ func performEMA(closes []float64, period int, latestPrice float64) string {
 }
 
 func performDEMA(closes []float64, period int, latestPrice float64) string {
-	log.Info("Performing Double Exponential Moving Average...")
+	start := time.Now()
+	defer trackTime("Double Exponential Moving Average", start)
+	res := "DEMA:: "
 	dema := indicator.Dema(period, closes)
 	demaLen := len(dema)
-	res := "DEMA:: "
 
 	if demaLen > 0 {
-		lastDema := dema[demaLen-1]
+		aboveCount, belowCount, neutralCount := 0, 0, 0
 
-		if latestPrice > lastDema {
-			res += "Uptrend - Latest Price is above DEMA"
-		} else if latestPrice < lastDema {
-			res += "Downtrend - Latest Price is below DEMA"
-		} else {
-			res += "Neutral - Latest Price is at DEMA level"
+		for _, value := range dema {
+			if value > latestPrice {
+				aboveCount += 1
+			} else if value < latestPrice {
+				belowCount += 1
+			} else {
+				neutralCount += 1
+			}
 		}
+
+		lastDema := dema[demaLen-1]
+		res += fmt.Sprintf("DEMA > Latest Price %d times, DEMA < Latest Price %d times, Neutral %d times. Last DEMA = %.2f, Latest Price = %.2f", aboveCount, belowCount, neutralCount, lastDema, latestPrice)
 	} else {
 		res += "Insufficient data"
 	}
@@ -104,24 +127,95 @@ func performDEMA(closes []float64, period int, latestPrice float64) string {
 }
 
 func performTEMA(closes []float64, period int, latestPrice float64) string {
-	log.Info("Performing Triple Exponential Moving Average...")
+	start := time.Now()
+	defer trackTime("Triple Exponential Moving Average", start)
+	res := "TEMA:: "
 	tema := indicator.Tema(period, closes)
 	temaLen := len(tema)
-	res := "TEMA:: "
 
 	if temaLen > 0 {
-		lastTema := tema[temaLen-1]
+		aboveCount, belowCount, neutralCount := 0, 0, 0
 
-		if latestPrice > lastTema {
-			res += "Uptrend - Latest Price is above TEMA"
-		} else if latestPrice < lastTema {
-			res += "Downtrend - Latest Price is below TEMA"
-		} else {
-			res += "Neutral - Latest Price is at TEMA level"
+		for _, value := range tema {
+			if value > latestPrice {
+				aboveCount += 1
+			} else if value < latestPrice {
+				belowCount += 1
+			} else {
+				neutralCount += 1
+			}
 		}
+
+		lastTema := tema[temaLen-1]
+		res += fmt.Sprintf("TEMA above Latest Price %d times, TEMA below Latest Price %d times, Neutral %d times. Last TEMA = %.2f, Latest Price = %.2f", aboveCount, belowCount, neutralCount, lastTema, latestPrice)
 	} else {
 		res += "Insufficient data"
 	}
 
 	return res
+}
+
+func performRSI(closes []float64, latestPrice float64) string {
+	start := time.Now()
+	defer trackTime("Relative Strength Index", start)
+	res := "RSI:: "
+	rs, rsi := indicator.Rsi(closes)
+	rsLen, rsiLen := len(rs), len(rsi)
+
+	if (rsLen > 0 && rsiLen > 0) && (rsLen == rsiLen) {
+		aboveCount, belowCount, neutralCount := 0, 0, 0
+
+		for _, value := range rsi {
+			if value > 70 {
+				aboveCount += 1
+			} else if value < 30 {
+				belowCount += 1
+			} else {
+				neutralCount += 1
+			}
+		}
+
+		lastRs := rs[rsLen-1]
+		lastRsi := rsi[rsiLen-1]
+		res += fmt.Sprintf("Overbought %d times, Oversold %d times, Neutral %d times. Last RS = %.2f, Last RSI = %.2f Latest Price = %.2f", aboveCount, belowCount, neutralCount, lastRs, lastRsi, latestPrice)
+	} else {
+		res += "Insufficient data"
+	}
+
+	return res
+}
+
+func performMFI(period int, highs, lows, closes, volumes []float64) string {
+	start := time.Now()
+	defer trackTime("Money Flow Index", start)
+	res := "MFI:: "
+	mfi := indicator.MoneyFlowIndex(period, highs, lows, closes, volumes)
+	mfiLen := len(mfi)
+
+	if mfiLen > 0 {
+		aboveCount, belowCount, neutralCount := 0, 0, 0
+
+		for i := 1; i < len(mfi); i++ {
+			if mfi[i] > mfi[i-1] {
+				aboveCount += 1
+			} else if mfi[i] < mfi[i-1] {
+				belowCount += 1
+			} else {
+				neutralCount += 1
+			}
+		}
+
+		secondLastMfi := mfi[mfiLen-2]
+		lastMfi := mfi[mfiLen-1]
+		res += fmt.Sprintf("Uptrend %d times, Downtrend %d times, Neutral %d times. Second Last MFI = %.2f, Last MFI = %.2f", aboveCount, belowCount, neutralCount, secondLastMfi, lastMfi)
+	} else {
+		res += "Insufficient data"
+	}
+
+	return res
+}
+
+func trackTime(analysisName string, start time.Time) {
+	elapsed := time.Since(start)
+	log.Info(fmt.Sprintf("Performing %v", analysisName), "time elapsed", elapsed)
 }

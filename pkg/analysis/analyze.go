@@ -2,8 +2,11 @@ package analysis
 
 import (
 	"context"
+	"errors"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/adshao/go-binance/v2"
@@ -22,7 +25,11 @@ var (
 	BINANCE_SECRET_KEY string
 	ANALYSIS_REQ       *AnalysisRequest
 	LATEST_PRICE       float64
+	OPENS              []float64
 	CLOSES             []float64
+	HIGHS              []float64
+	LOWS               []float64
+	VOLUMES            []float64
 )
 
 func init() {
@@ -59,7 +66,7 @@ func StartAnalysis(analysisRequest *AnalysisRequest) {
 		os.Exit(1)
 	}
 
-	saveCloses(klines)
+	saveData(klines)
 	performAnalysis()
 }
 
@@ -89,6 +96,7 @@ func fetchKlines(client *binance.Client, analysisRequest *AnalysisRequest) ([]*b
 		Interval(analysisRequest.Interval).
 		StartTime(daysAgo.UnixMilli()).
 		EndTime(now.UnixMilli()).
+		Limit(1500).
 		Do(context.Background())
 
 	if err != nil {
@@ -98,13 +106,46 @@ func fetchKlines(client *binance.Client, analysisRequest *AnalysisRequest) ([]*b
 	return klines, nil
 }
 
-func saveCloses(klines []*binance.Kline) {
+func saveData(klines []*binance.Kline) {
+	OPENS = make([]float64, 0, len(klines))
 	CLOSES = make([]float64, 0, len(klines))
+	HIGHS = make([]float64, 0, len(klines))
+	LOWS = make([]float64, 0, len(klines))
+	VOLUMES = make([]float64, 0, len(klines))
+
 	for _, k := range klines {
+		if openPrice, err := strconv.ParseFloat(k.Open, 64); err == nil {
+			OPENS = append(OPENS, openPrice)
+		} else {
+			log.Error("Error parsing open price: %v", err)
+			return
+		}
+
 		if closePrice, err := strconv.ParseFloat(k.Close, 64); err == nil {
 			CLOSES = append(CLOSES, closePrice)
 		} else {
 			log.Error("Error parsing close price: %v", err)
+			return
+		}
+
+		if high, err := strconv.ParseFloat(k.High, 64); err == nil {
+			HIGHS = append(HIGHS, high)
+		} else {
+			log.Error("Error parsing high price: %v", err)
+			return
+		}
+
+		if low, err := strconv.ParseFloat(k.Low, 64); err == nil {
+			LOWS = append(LOWS, low)
+		} else {
+			log.Error("Error parsing low price: %v", err)
+			return
+		}
+
+		if volume, err := strconv.ParseFloat(k.Volume, 64); err == nil {
+			VOLUMES = append(VOLUMES, volume)
+		} else {
+			log.Error("Error parsing volume: %v", err)
 			return
 		}
 	}
@@ -119,9 +160,42 @@ func performAnalysis() {
 	analysis = append(analysis, performEMA(CLOSES, ANALYSIS_REQ.Duration, LATEST_PRICE))
 	analysis = append(analysis, performDEMA(CLOSES, ANALYSIS_REQ.Duration, LATEST_PRICE))
 	analysis = append(analysis, performTEMA(CLOSES, ANALYSIS_REQ.Duration, LATEST_PRICE))
+	analysis = append(analysis, performRSI(CLOSES, LATEST_PRICE))
+	analysis = append(analysis, performMFI(ANALYSIS_REQ.Duration, HIGHS, LOWS, CLOSES, VOLUMES))
 
 	log.Info("Preparing Analysis Results...")
 	for _, value := range analysis {
 		log.Info("Result", "data", value)
 	}
+}
+
+func ValidateInput(input []string) (*AnalysisRequest, error) {
+	log.Debug("Validating input...")
+
+	symbol := strings.ToUpper(input[0])
+	if len(symbol) == 0 {
+		return nil, errors.New("Symbol entry is invalid")
+	}
+
+	duration, err := strconv.Atoi(input[1])
+	if err != nil {
+		return nil, errors.New("Duration entry is invalid")
+	}
+
+	interval := input[2]
+	pattern := `^(1m|3m|5m|15m|30m|1h|2h|4h|6h|8h|12h|1d|3d|1w|1M)$`
+	r, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, errors.New("Error compiling regex")
+	}
+
+	if !r.MatchString(interval) {
+		return nil, errors.New("Interval entry is invalid")
+	}
+
+	return &AnalysisRequest{
+		Symbol:   symbol,
+		Duration: duration,
+		Interval: interval,
+	}, nil
 }
