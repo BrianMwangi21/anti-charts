@@ -11,6 +11,7 @@ import (
 
 	"github.com/adshao/go-binance/v2"
 	"github.com/charmbracelet/log"
+	"github.com/cinar/indicator"
 	"github.com/joho/godotenv"
 )
 
@@ -25,11 +26,7 @@ var (
 	BINANCE_SECRET_KEY string
 	ANALYSIS_REQ       *AnalysisRequest
 	LATEST_PRICE       float64
-	OPENS              []float64
-	CLOSES             []float64
-	HIGHS              []float64
-	LOWS               []float64
-	VOLUMES            []float64
+	ASSET              *indicator.Asset
 )
 
 func init() {
@@ -68,6 +65,7 @@ func StartAnalysis(analysisRequest *AnalysisRequest) {
 
 	saveData(klines)
 	performAnalysis()
+	performStrategies()
 }
 
 func fetchLatestPrice(client *binance.Client, symbol string) {
@@ -96,7 +94,6 @@ func fetchKlines(client *binance.Client, analysisRequest *AnalysisRequest) ([]*b
 		Interval(analysisRequest.Interval).
 		StartTime(daysAgo.UnixMilli()).
 		EndTime(now.UnixMilli()).
-		Limit(1500).
 		Do(context.Background())
 
 	if err != nil {
@@ -107,11 +104,12 @@ func fetchKlines(client *binance.Client, analysisRequest *AnalysisRequest) ([]*b
 }
 
 func saveData(klines []*binance.Kline) {
-	OPENS = make([]float64, 0, len(klines))
-	CLOSES = make([]float64, 0, len(klines))
-	HIGHS = make([]float64, 0, len(klines))
-	LOWS = make([]float64, 0, len(klines))
-	VOLUMES = make([]float64, 0, len(klines))
+	OPENS := make([]float64, 0, len(klines))
+	CLOSES := make([]float64, 0, len(klines))
+	HIGHS := make([]float64, 0, len(klines))
+	LOWS := make([]float64, 0, len(klines))
+	VOLUMES := make([]float64, 0, len(klines))
+	DATES := make([]time.Time, 0, len(klines))
 
 	for _, k := range klines {
 		if openPrice, err := strconv.ParseFloat(k.Open, 64); err == nil {
@@ -148,22 +146,52 @@ func saveData(klines []*binance.Kline) {
 			log.Error("Error parsing volume: %v", err)
 			return
 		}
+
+		closeTime := time.Unix(k.CloseTime/1000, 0)
+		DATES = append(DATES, closeTime)
+	}
+
+	ASSET = &indicator.Asset{
+		Date:    DATES,
+		Opening: OPENS,
+		Closing: CLOSES,
+		High:    HIGHS,
+		Low:     LOWS,
+		Volume:  VOLUMES,
 	}
 }
 
 func performAnalysis() {
-	log.Info("Performing Analysis...")
+	log.Info("Performing Indicator Analysis...")
 	var analysis []string
 
-	analysis = append(analysis, performMACD(CLOSES))
-	analysis = append(analysis, performSMA(CLOSES, ANALYSIS_REQ.Duration, LATEST_PRICE))
-	analysis = append(analysis, performEMA(CLOSES, ANALYSIS_REQ.Duration, LATEST_PRICE))
-	analysis = append(analysis, performDEMA(CLOSES, ANALYSIS_REQ.Duration, LATEST_PRICE))
-	analysis = append(analysis, performTEMA(CLOSES, ANALYSIS_REQ.Duration, LATEST_PRICE))
-	analysis = append(analysis, performRSI(CLOSES, LATEST_PRICE))
-	analysis = append(analysis, performMFI(ANALYSIS_REQ.Duration, HIGHS, LOWS, CLOSES, VOLUMES))
+	analysis = append(analysis, performMACD(ASSET.Closing))
+	analysis = append(analysis, performSMA(ASSET.Closing, ANALYSIS_REQ.Duration, LATEST_PRICE))
+	analysis = append(analysis, performEMA(ASSET.Closing, ANALYSIS_REQ.Duration, LATEST_PRICE))
+	analysis = append(analysis, performDEMA(ASSET.Closing, ANALYSIS_REQ.Duration, LATEST_PRICE))
+	analysis = append(analysis, performTEMA(ASSET.Closing, ANALYSIS_REQ.Duration, LATEST_PRICE))
+	analysis = append(analysis, performRSI(ASSET.Closing))
+	analysis = append(analysis, performBB(ASSET.Closing, LATEST_PRICE))
+	analysis = append(analysis, performMFI(ANALYSIS_REQ.Duration, ASSET.High, ASSET.Low, ASSET.Closing, ASSET.Volume))
 
-	log.Info("Preparing Analysis Results...")
+	log.Info("Preparing Indicator Analysis Results...")
+	for _, value := range analysis {
+		log.Info("Result", "data", value)
+	}
+}
+
+func performStrategies() {
+	log.Info("Performing Strategies Analysis...")
+	var analysis []string
+
+	analysis = append(analysis, performMACDStrategy(ASSET))
+	analysis = append(analysis, performTrendStrategy(ASSET))
+	analysis = append(analysis, performRSIStrategy(ASSET))
+	analysis = append(analysis, performBBStrategy(ASSET))
+	analysis = append(analysis, performMFIStrategy(ASSET))
+	analysis = append(analysis, performVWAPStrategy(ASSET))
+
+	log.Info("Preparing Strategies Analysis Results...")
 	for _, value := range analysis {
 		log.Info("Result", "data", value)
 	}
