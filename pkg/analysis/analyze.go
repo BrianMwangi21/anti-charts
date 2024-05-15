@@ -191,10 +191,14 @@ func performStrategies() {
 	analysis = append(analysis, performMFIStrategy(ASSET))
 	analysis = append(analysis, performVWAPStrategy(ASSET))
 
-	log.Info("Preparing Strategies Analysis Results...")
+	log.Info("Preparing Individual Strategies Analysis Results...")
 	for _, value := range analysis {
 		log.Info("Result", "data", value)
 	}
+
+	log.Info("Preparing Cumulative Strategies Analysis Results...")
+	cumulativeRes := performCumulativeStrategy(ASSET)
+	log.Info("Result", "data", cumulativeRes)
 }
 
 func ValidateInput(input []string) (*AnalysisRequest, error) {
