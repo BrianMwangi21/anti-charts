@@ -182,23 +182,7 @@ func performAnalysis() {
 
 func performStrategies() {
 	log.Info("Performing Strategies Analysis...")
-	var analysis []string
-
-	analysis = append(analysis, performMACDStrategy(ASSET))
-	analysis = append(analysis, performTrendStrategy(ASSET))
-	analysis = append(analysis, performRSIStrategy(ASSET))
-	analysis = append(analysis, performBBStrategy(ASSET))
-	analysis = append(analysis, performMFIStrategy(ASSET))
-	analysis = append(analysis, performVWAPStrategy(ASSET))
-
-	log.Info("Preparing Individual Strategies Analysis Results...")
-	for _, value := range analysis {
-		log.Info("Result", "data", value)
-	}
-
-	log.Info("Preparing Cumulative Strategies Analysis Results...")
-	cumulativeRes := performCumulativeStrategy(ASSET)
-	log.Info("Result", "data", cumulativeRes)
+	performAllStrategies(ASSET, ANALYSIS_REQ.Duration)
 }
 
 func ValidateInput(input []string) (*AnalysisRequest, error) {

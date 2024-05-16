@@ -4,184 +4,68 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/cinar/indicator"
 )
 
 const TREND_PERIOD = 5
 
-func performMACDStrategy(asset *indicator.Asset) string {
+func performAllStrategies(asset *indicator.Asset, period int) {
 	start := time.Now()
-	defer trackTime("Moving Average Convergence Divergence Strategy", start)
-	res := "MACD STRATEGY:: TREND :: "
-	actions := indicator.MacdStrategy(asset)
-	actionsLen := len(actions)
-
-	if actionsLen > 0 {
-		lastAction := actions[actionsLen-1]
-
-		if lastAction == indicator.BUY {
-			res += fmt.Sprintf("BUY recommended. Action = %v", lastAction)
-		} else if lastAction == indicator.SELL {
-			res += fmt.Sprintf("SELL recommended. Action = %v", lastAction)
-		} else {
-			res += fmt.Sprintf("HODL recommended. Action = %v", lastAction)
-		}
-	} else {
-		res += "Insufficient data"
+	defer trackTime("Strategies Analysis", start)
+	strategies := []string{
+		"Chande Forecast Oscillator Strategy",
+		"KDJ Strategy",
+		"MACD Strategy",
+		"Trend Stategy",
+		"Volume Weighted Moving Average",
+		"Awesome Oscillator Strategy",
+		"RSI Strategy",
+		"RSI 2 Strategy",
+		"Williams R Strategy",
+		"Bollinger Bands Strategy",
+		"Chaikin Money Flow Strategy",
+		"Ease of Movement Strategy",
+		"Force Index Strategy",
+		"Money Flow Index Strategy",
+		"Negative Volume Index Strategy",
+		"Volume Weighted Average Price Strategy",
 	}
 
-	return res
-}
-
-func performTrendStrategy(asset *indicator.Asset) string {
-	start := time.Now()
-	defer trackTime("Trend Strategy", start)
-	res := "TREND STRATEGY:: TREND :: "
-	actions := indicator.TrendStrategy(asset, TREND_PERIOD)
-	actionsLen := len(actions)
-
-	if actionsLen > 0 {
-		lastAction := actions[actionsLen-1]
-
-		if lastAction == indicator.BUY {
-			res += fmt.Sprintf("BUY recommended. Action = %v", lastAction)
-		} else if lastAction == indicator.SELL {
-			res += fmt.Sprintf("SELL recommended. Action = %v", lastAction)
-		} else {
-			res += fmt.Sprintf("HODL recommended. Action = %v", lastAction)
-		}
-	} else {
-		res += "Insufficient data"
-	}
-
-	return res
-}
-
-func performRSIStrategy(asset *indicator.Asset) string {
-	start := time.Now()
-	defer trackTime("Relatve Strength Index Strategy", start)
-	res := "RSI STRATEGY:: MOMENTUN :: "
-	actions := indicator.DefaultRsiStrategy(asset)
-	actionsLen := len(actions)
-
-	if actionsLen > 0 {
-		lastAction := actions[actionsLen-1]
-
-		if lastAction == indicator.BUY {
-			res += fmt.Sprintf("BUY recommended. Action = %v", lastAction)
-		} else if lastAction == indicator.SELL {
-			res += fmt.Sprintf("SELL recommended. Action = %v", lastAction)
-		} else {
-			res += fmt.Sprintf("HODL recommended. Action = %v", lastAction)
-		}
-	} else {
-		res += "Insufficient data"
-	}
-
-	return res
-}
-
-func performBBStrategy(asset *indicator.Asset) string {
-	start := time.Now()
-	defer trackTime("Bollinger Bands Strategy", start)
-	res := "BOLLINGER BANDS STRATEGY:: VOLATILITY :: "
-	actions := indicator.BollingerBandsStrategy(asset)
-	actionsLen := len(actions)
-
-	if actionsLen > 0 {
-		lastAction := actions[actionsLen-1]
-
-		if lastAction == indicator.BUY {
-			res += fmt.Sprintf("BUY recommended. Action = %v", lastAction)
-		} else if lastAction == indicator.SELL {
-			res += fmt.Sprintf("SELL recommended. Action = %v", lastAction)
-		} else {
-			res += fmt.Sprintf("HODL recommended. Action = %v", lastAction)
-		}
-	} else {
-		res += "Insufficient data"
-	}
-
-	return res
-}
-
-func performMFIStrategy(asset *indicator.Asset) string {
-	start := time.Now()
-	defer trackTime("Money Flow Index Strategy", start)
-	res := "MFI STRATEGY:: VOLUME :: "
-	actions := indicator.MoneyFlowIndexStrategy(asset)
-	actionsLen := len(actions)
-
-	if actionsLen > 0 {
-		lastAction := actions[actionsLen-1]
-
-		if lastAction == indicator.BUY {
-			res += fmt.Sprintf("BUY recommended. Action = %v", lastAction)
-		} else if lastAction == indicator.SELL {
-			res += fmt.Sprintf("SELL recommended. Action = %v", lastAction)
-		} else {
-			res += fmt.Sprintf("HODL recommended. Action = %v", lastAction)
-		}
-	} else {
-		res += "Insufficient data"
-	}
-
-	return res
-}
-
-func performVWAPStrategy(asset *indicator.Asset) string {
-	start := time.Now()
-	defer trackTime("Volume Weighted Average Price Strategy", start)
-	res := "VWAP STRATEGY:: VOLUME :: "
-	actions := indicator.VolumeWeightedAveragePriceStrategy(asset)
-	actionsLen := len(actions)
-
-	if actionsLen > 0 {
-		lastAction := actions[actionsLen-1]
-
-		if lastAction == indicator.BUY {
-			res += fmt.Sprintf("BUY recommended. Action = %v", lastAction)
-		} else if lastAction == indicator.SELL {
-			res += fmt.Sprintf("SELL recommended. Action = %v", lastAction)
-		} else {
-			res += fmt.Sprintf("HODL recommended. Action = %v", lastAction)
-		}
-	} else {
-		res += "Insufficient data"
-	}
-
-	return res
-}
-
-func performCumulativeStrategy(asset *indicator.Asset) string {
-	start := time.Now()
-	defer trackTime("Cumulative Strategy", start)
-	res := "CUMULATIVE STRATEGY:: "
-
-	strategies := indicator.AllStrategies(
+	actions := indicator.RunStrategies(
+		asset,
+		indicator.ChandeForecastOscillatorStrategy,
+		indicator.DefaultKdjStrategy,
 		indicator.MacdStrategy,
 		indicator.MakeTrendStrategy(TREND_PERIOD),
+		indicator.MakeVwmaStrategy(period),
+		indicator.AwesomeOscillatorStrategy,
 		indicator.DefaultRsiStrategy,
+		indicator.Rsi2Strategy,
+		indicator.WilliamsRStrategy,
 		indicator.BollingerBandsStrategy,
+		indicator.ChaikinMoneyFlowStrategy,
+		indicator.EaseOfMovementStrategy,
+		indicator.ForceIndexStrategy,
 		indicator.MoneyFlowIndexStrategy,
+		indicator.NegativeVolumeIndexStrategy,
 		indicator.VolumeWeightedAveragePriceStrategy,
 	)
-	actions := strategies(asset)
-	actionsLen := len(actions)
 
-	if actionsLen > 0 {
-		lastAction := actions[actionsLen-1]
+	for index, stratActions := range actions {
+		gains := indicator.ApplyActions(asset.Closing, stratActions)
+		lastAction := stratActions[len(stratActions)-1]
+		res := fmt.Sprintf("%v:: ", strategies[index])
 
 		if lastAction == indicator.BUY {
-			res += fmt.Sprintf("BUY recommended. Action = %v", lastAction)
+			res += fmt.Sprintf("BUY recommended. ")
 		} else if lastAction == indicator.SELL {
-			res += fmt.Sprintf("SELL recommended. Action = %v", lastAction)
+			res += fmt.Sprintf("SELL recommended. ")
 		} else {
-			res += fmt.Sprintf("HODL recommended. Action = %v", lastAction)
+			res += fmt.Sprintf("HODL recommended. ")
 		}
-	} else {
-		res += "Insufficient data"
-	}
 
-	return res
+		res += fmt.Sprintf("GAINS = %.4f", gains[len(gains)-1])
+		log.Info("Result", "data", res)
+	}
 }
