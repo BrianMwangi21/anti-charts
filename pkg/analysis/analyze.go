@@ -28,6 +28,7 @@ var (
 	ANALYSIS_REQ       *AnalysisRequest
 	LATEST_PRICE       float64
 	ASSET              *indicator.Asset
+	USER_INPUT_CHANNEL = make(chan string)
 )
 
 func init() {
@@ -67,6 +68,37 @@ func StartAnalysis(analysisRequest *AnalysisRequest) {
 	saveData(klines)
 	performAnalysis()
 	performStrategies()
+	RestartAnalysis()
+}
+
+func RestartAnalysis() {
+	seconds := 300
+	fmt.Println()
+	fmt.Print("\033[s")
+
+	go func() {
+		var input string
+		fmt.Scanln(&input)
+		USER_INPUT_CHANNEL <- input
+	}()
+
+	for seconds > 0 {
+		select {
+		// Check if user pressed enter
+		case userInput := <-USER_INPUT_CHANNEL:
+			if userInput == "" {
+				StartAnalysis(ANALYSIS_REQ)
+				return
+			}
+		default:
+			fmt.Printf("Restarting Analysis in %v seconds... (Press Enter at any point to skip wait)", seconds)
+			time.Sleep(time.Second)
+			seconds--
+			fmt.Print("\033[u\033[K")
+		}
+	}
+
+	StartAnalysis(ANALYSIS_REQ)
 }
 
 func fetchLatestPrice(client *binance.Client, symbol string) {
