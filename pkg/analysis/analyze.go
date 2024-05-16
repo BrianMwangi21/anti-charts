@@ -3,6 +3,7 @@ package analysis
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"regexp"
 	"strconv"
@@ -163,6 +164,8 @@ func saveData(klines []*binance.Kline) {
 
 func performAnalysis() {
 	log.Info("Performing Indicator Analysis...")
+	start := time.Now()
+	defer trackTime("Indicator Analysis", start)
 	var analysis []string
 
 	analysis = append(analysis, performMACD(ASSET.Closing))
@@ -174,14 +177,15 @@ func performAnalysis() {
 	analysis = append(analysis, performBB(ASSET.Closing, LATEST_PRICE))
 	analysis = append(analysis, performMFI(ANALYSIS_REQ.Duration, ASSET.High, ASSET.Low, ASSET.Closing, ASSET.Volume))
 
-	log.Info("Preparing Indicator Analysis Results...")
 	for _, value := range analysis {
-		log.Info("Result", "data", value)
+		log.Info("INDICATORS", "result", value)
 	}
 }
 
 func performStrategies() {
 	log.Info("Performing Strategies Analysis...")
+	start := time.Now()
+	defer trackTime("Strategies Analysis", start)
 	performAllStrategies(ASSET, ANALYSIS_REQ.Duration)
 }
 
@@ -214,4 +218,9 @@ func ValidateInput(input []string) (*AnalysisRequest, error) {
 		Duration: duration,
 		Interval: interval,
 	}, nil
+}
+
+func trackTime(analysisName string, start time.Time) {
+	elapsed := time.Since(start)
+	log.Info(fmt.Sprintf("Performing %v", analysisName), "time elapsed", elapsed)
 }

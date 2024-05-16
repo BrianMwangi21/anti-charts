@@ -2,15 +2,11 @@ package analysis
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/charmbracelet/log"
 	"github.com/cinar/indicator"
 )
 
 func performMACD(closes []float64) string {
-	start := time.Now()
-	defer trackTime("Moving Average Convergence Divergence", start)
 	res := "MACD:: TREND :: "
 	macd, signal := indicator.Macd(closes)
 	macdLen, signalLen := len(macd), len(signal)
@@ -41,8 +37,6 @@ func performMACD(closes []float64) string {
 }
 
 func performSMA(closes []float64, period int, latestPrice float64) string {
-	start := time.Now()
-	defer trackTime("Simple Moving Average", start)
 	res := "SMA:: TREND :: "
 	sma := indicator.Sma(period, closes)
 	smaLen := len(sma)
@@ -65,8 +59,6 @@ func performSMA(closes []float64, period int, latestPrice float64) string {
 }
 
 func performEMA(closes []float64, period int, latestPrice float64) string {
-	start := time.Now()
-	defer trackTime("Exponential Moving Average", start)
 	res := "EMA:: TREND :: "
 	ema := indicator.Ema(period, closes)
 	emaLen := len(ema)
@@ -89,8 +81,6 @@ func performEMA(closes []float64, period int, latestPrice float64) string {
 }
 
 func performDEMA(closes []float64, period int, latestPrice float64) string {
-	start := time.Now()
-	defer trackTime("Double Exponential Moving Average", start)
 	res := "DEMA:: TREND :: "
 	dema := indicator.Dema(period, closes)
 	demaLen := len(dema)
@@ -113,8 +103,6 @@ func performDEMA(closes []float64, period int, latestPrice float64) string {
 }
 
 func performTEMA(closes []float64, period int, latestPrice float64) string {
-	start := time.Now()
-	defer trackTime("Triple Exponential Moving Average", start)
 	res := "TEMA:: TREND :: "
 	tema := indicator.Tema(period, closes)
 	temaLen := len(tema)
@@ -137,8 +125,6 @@ func performTEMA(closes []float64, period int, latestPrice float64) string {
 }
 
 func performRSI(closes []float64) string {
-	start := time.Now()
-	defer trackTime("Relative Strength Index", start)
 	res := "RSI:: MOMENTUM :: "
 	rs, rsi := indicator.Rsi(closes)
 	rsLen, rsiLen := len(rs), len(rsi)
@@ -161,8 +147,6 @@ func performRSI(closes []float64) string {
 }
 
 func performBB(closes []float64, latestPrice float64) string {
-	start := time.Now()
-	defer trackTime("Bollinger Bands", start)
 	res := "BB:: VOLATILITY :: "
 	middle, upper, lower := indicator.BollingerBands(closes)
 	middleLen, upperLen, lowerLen := len(middle), len(upper), len(lower)
@@ -187,8 +171,6 @@ func performBB(closes []float64, latestPrice float64) string {
 }
 
 func performMFI(period int, highs, lows, closes, volumes []float64) string {
-	start := time.Now()
-	defer trackTime("Money Flow Index", start)
 	res := "MFI:: VOLUME :: "
 	mfi := indicator.MoneyFlowIndex(period, highs, lows, closes, volumes)
 	mfiLen := len(mfi)
@@ -208,9 +190,4 @@ func performMFI(period int, highs, lows, closes, volumes []float64) string {
 	}
 
 	return res
-}
-
-func trackTime(analysisName string, start time.Time) {
-	elapsed := time.Since(start)
-	log.Info(fmt.Sprintf("Performing %v", analysisName), "time elapsed", elapsed)
 }

@@ -2,7 +2,6 @@ package analysis
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/cinar/indicator"
@@ -11,9 +10,12 @@ import (
 const TREND_PERIOD = 5
 
 func performAllStrategies(asset *indicator.Asset, period int) {
-	start := time.Now()
-	defer trackTime("Strategies Analysis", start)
-	strategies := []string{
+	var (
+		buys  []string
+		holds []string
+		sells []string
+	)
+	strategyNames := []string{
 		"Chande Forecast Oscillator Strategy",
 		"KDJ Strategy",
 		"MACD Strategy",
@@ -32,8 +34,7 @@ func performAllStrategies(asset *indicator.Asset, period int) {
 		"Volume Weighted Average Price Strategy",
 	}
 
-	actions := indicator.RunStrategies(
-		asset,
+	strategies := []indicator.StrategyFunction{
 		indicator.ChandeForecastOscillatorStrategy,
 		indicator.DefaultKdjStrategy,
 		indicator.MacdStrategy,
@@ -50,22 +51,39 @@ func performAllStrategies(asset *indicator.Asset, period int) {
 		indicator.MoneyFlowIndexStrategy,
 		indicator.NegativeVolumeIndexStrategy,
 		indicator.VolumeWeightedAveragePriceStrategy,
-	)
+	}
+
+	actions := indicator.RunStrategies(asset, strategies...)
 
 	for index, stratActions := range actions {
 		gains := indicator.ApplyActions(asset.Closing, stratActions)
 		lastAction := stratActions[len(stratActions)-1]
-		res := fmt.Sprintf("%v:: ", strategies[index])
+		res := fmt.Sprintf("%v:: ", strategyNames[index])
 
 		if lastAction == indicator.BUY {
-			res += fmt.Sprintf("BUY recommended. ")
+			res += fmt.Sprintf("BUY recommended. Gains = %.4f", gains[len(gains)-1])
+			buys = append(buys, res)
 		} else if lastAction == indicator.SELL {
-			res += fmt.Sprintf("SELL recommended. ")
+			res += fmt.Sprintf("SELL recommended. Gains = %.4f", gains[len(gains)-1])
+			sells = append(sells, res)
 		} else {
-			res += fmt.Sprintf("HODL recommended. ")
+			res += fmt.Sprintf("HOLD recommended. Gains = %.4f", gains[len(gains)-1])
+			holds = append(holds, res)
 		}
+	}
 
-		res += fmt.Sprintf("GAINS = %.4f", gains[len(gains)-1])
-		log.Info("Result", "data", res)
+	log.Info("Strategies Recommending BUY...")
+	for _, value := range buys {
+		log.Info("STRATEGIES", "result", value)
+	}
+
+	log.Info("Strategies Recommending HODL...")
+	for _, value := range holds {
+		log.Info("STRATEGIES", "result", value)
+	}
+
+	log.Info("Strategies Recommending SELL...")
+	for _, value := range sells {
+		log.Info("STRATEGIES", "result", value)
 	}
 }
