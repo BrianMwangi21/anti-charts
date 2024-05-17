@@ -9,48 +9,55 @@ import (
 
 const TREND_PERIOD = 5
 
+type Strat struct {
+	Name   string
+	Weight int
+	Result string
+}
+
 func performAllStrategies(asset *indicator.Asset, period int) {
-	var (
-		buys  []string
-		holds []string
-		sells []string
-	)
-	strategyNames := []string{
-		"Chande Forecast Oscillator Strategy",
-		"KDJ Strategy",
-		"MACD Strategy",
-		"Trend Stategy",
-		"Volume Weighted Moving Average",
-		"Awesome Oscillator Strategy",
-		"RSI Strategy",
-		"RSI 2 Strategy",
-		"Williams R Strategy",
-		"Bollinger Bands Strategy",
-		"Chaikin Money Flow Strategy",
-		"Ease of Movement Strategy",
-		"Force Index Strategy",
-		"Money Flow Index Strategy",
-		"Negative Volume Index Strategy",
-		"Volume Weighted Average Price Strategy",
+	strats := []Strat{
+		{"MACD Strategy", 5, ""},
+		{"RSI Strategy", 5, ""},
+		//
+		{"Chande Forecast Oscillator Strategy", 4, ""},
+		{"Trend Stategy", 4, ""},
+		{"Bollinger Bands Strategy", 4, ""},
+		{"Money Flow Index Strategy", 4, ""},
+		{"Volume Weighted Average Price Strategy", 4, ""},
+		//
+		{"KDJ Strategy", 3, ""},
+		{"Volume Weighted Moving Average", 3, ""},
+		{"Awesome Oscillator Strategy", 3, ""},
+		{"Williams R Strategy", 3, ""},
+		{"Chaikin Money Flow Strategy", 3, ""},
+		{"Ease of Movement Strategy", 3, ""},
+		{"Force Index Strategy", 3, ""},
+		//
+		{"Negative Volume Index Strategy", 2, ""},
+		{"RSI 2 Strategy", 2, ""},
 	}
 
 	strategies := []indicator.StrategyFunction{
-		indicator.ChandeForecastOscillatorStrategy,
-		indicator.DefaultKdjStrategy,
 		indicator.MacdStrategy,
+		indicator.DefaultRsiStrategy,
+		//
+		indicator.ChandeForecastOscillatorStrategy,
 		indicator.MakeTrendStrategy(TREND_PERIOD),
+		indicator.BollingerBandsStrategy,
+		indicator.MoneyFlowIndexStrategy,
+		indicator.VolumeWeightedAveragePriceStrategy,
+		//
+		indicator.DefaultKdjStrategy,
 		indicator.MakeVwmaStrategy(period),
 		indicator.AwesomeOscillatorStrategy,
-		indicator.DefaultRsiStrategy,
-		indicator.Rsi2Strategy,
 		indicator.WilliamsRStrategy,
-		indicator.BollingerBandsStrategy,
 		indicator.ChaikinMoneyFlowStrategy,
 		indicator.EaseOfMovementStrategy,
 		indicator.ForceIndexStrategy,
-		indicator.MoneyFlowIndexStrategy,
+		//
 		indicator.NegativeVolumeIndexStrategy,
-		indicator.VolumeWeightedAveragePriceStrategy,
+		indicator.Rsi2Strategy,
 	}
 
 	actions := indicator.RunStrategies(asset, strategies...)
@@ -58,32 +65,27 @@ func performAllStrategies(asset *indicator.Asset, period int) {
 	for index, stratActions := range actions {
 		gains := indicator.ApplyActions(asset.Closing, stratActions)
 		lastAction := stratActions[len(stratActions)-1]
-		res := fmt.Sprintf("%v:: ", strategyNames[index])
+		res := fmt.Sprintf("%v:: ", strats[index].Name)
 
 		if lastAction == indicator.BUY {
-			res += fmt.Sprintf("BUY recommended. Gains = %.4f", gains[len(gains)-1])
-			buys = append(buys, res)
+			res += fmt.Sprintf("BUY recommended. ")
 		} else if lastAction == indicator.SELL {
-			res += fmt.Sprintf("SELL recommended. Gains = %.4f", gains[len(gains)-1])
-			sells = append(sells, res)
+			res += fmt.Sprintf("SELL recommended. ")
 		} else {
-			res += fmt.Sprintf("HOLD recommended. Gains = %.4f", gains[len(gains)-1])
-			holds = append(holds, res)
+			res += fmt.Sprintf("HOLD recommended. ")
 		}
+
+		res += fmt.Sprintf("Gains = %.4f", gains[len(gains)-1])
+		strats[index].Result = res
 	}
 
-	log.Info("Strategies Recommending BUY...")
-	for _, value := range buys {
-		log.Info("STRATEGIES", "result", value)
-	}
-
-	log.Info("Strategies Recommending HODL...")
-	for _, value := range holds {
-		log.Info("STRATEGIES", "result", value)
-	}
-
-	log.Info("Strategies Recommending SELL...")
-	for _, value := range sells {
-		log.Info("STRATEGIES", "result", value)
+	log.Info("Strategies Results By Weight...")
+	currentWeight := 6
+	for _, value := range strats {
+		if value.Weight != currentWeight {
+			currentWeight -= 1
+			log.Info(fmt.Sprintf("=== Strategy Weight %d ===", currentWeight))
+		}
+		log.Info("STRATEGIES", "result", value.Result)
 	}
 }
