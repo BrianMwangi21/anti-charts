@@ -16,21 +16,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type AnalysisRequest struct {
-	Symbol   string
-	Duration int
-	Interval string
-}
-
-var (
-	BINANCE_API_KEY    string
-	BINANCE_SECRET_KEY string
-	ANALYSIS_REQ       *AnalysisRequest
-	LATEST_PRICE       float64
-	ASSET              *indicator.Asset
-	USER_INPUT_CHANNEL = make(chan string)
-)
-
 func init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -40,9 +25,17 @@ func init() {
 
 	BINANCE_API_KEY = os.Getenv("BINANCE_API_KEY")
 	BINANCE_SECRET_KEY = os.Getenv("BINANCE_SECRET_KEY")
+	ALPACA_API_KEY = os.Getenv("ALPACA_API_KEY")
+	ALPACA_SECRET_KEY = os.Getenv("ALPACA_SECRET_KEY")
+	ALPACA_BASE_URL = os.Getenv("ALPACA_BASE_URL")
 
 	if BINANCE_API_KEY == "" || BINANCE_SECRET_KEY == "" {
 		log.Error("Error getting Binance keys")
+		os.Exit(1)
+	}
+
+	if ALPACA_API_KEY == "" || ALPACA_SECRET_KEY == "" || ALPACA_BASE_URL == "" {
+		log.Error("Error getting Alpaca keys")
 		os.Exit(1)
 	}
 }
@@ -52,14 +45,15 @@ func StartAnalysis(analysisRequest *AnalysisRequest) {
 	log.Info("Starting Analysis...")
 
 	client := binance.NewClient(BINANCE_API_KEY, BINANCE_SECRET_KEY)
-	fetchLatestPrice(client, ANALYSIS_REQ.Symbol)
+	symbol := ANALYSIS_REQ.Base + DEFAULT_QUOTE
+	fetchLatestPrice(client, symbol)
 
-	log.Info("Data", "Symbol", ANALYSIS_REQ.Symbol)
+	log.Info("Data", "Symbol", symbol)
 	log.Info("Data", "Duration", ANALYSIS_REQ.Duration)
 	log.Info("Data", "Interval", ANALYSIS_REQ.Interval)
 	log.Info("Data", "Latest Price", LATEST_PRICE)
 
-	klines, err := fetchKlines(client, analysisRequest)
+	klines, err := fetchKlines(client, analysisRequest, symbol)
 	if err != nil {
 		log.Error("Error fetching Klines data", "err", err)
 		os.Exit(1)
@@ -67,7 +61,8 @@ func StartAnalysis(analysisRequest *AnalysisRequest) {
 
 	saveData(klines)
 	performAnalysis()
-	performStrategies()
+	finalAction := performStrategies()
+	performTrade(finalAction)
 	RestartAnalysis()
 }
 
@@ -117,13 +112,13 @@ func fetchLatestPrice(client *binance.Client, symbol string) {
 	}
 }
 
-func fetchKlines(client *binance.Client, analysisRequest *AnalysisRequest) ([]*binance.Kline, error) {
+func fetchKlines(client *binance.Client, analysisRequest *AnalysisRequest, symbol string) ([]*binance.Kline, error) {
 	log.Info("Fetching KLines Data...")
 	now := time.Now()
 	daysAgo := now.AddDate(0, 0, (analysisRequest.Duration * -1))
 
 	klines, err := client.NewKlinesService().
-		Symbol(analysisRequest.Symbol).
+		Symbol(symbol).
 		Interval(analysisRequest.Interval).
 		StartTime(daysAgo.UnixMilli()).
 		EndTime(now.UnixMilli()).
@@ -214,18 +209,18 @@ func performAnalysis() {
 	}
 }
 
-func performStrategies() {
+func performStrategies() indicator.Action {
 	log.Info("Performing Strategies Analysis...")
 	start := time.Now()
 	defer trackTime("Strategies Analysis", start)
-	performAllStrategies(ASSET, ANALYSIS_REQ.Duration)
+	return performAllStrategies(ASSET, ANALYSIS_REQ.Duration)
 }
 
 func ValidateInput(input []string) (*AnalysisRequest, error) {
 	log.Debug("Validating input...")
 
-	symbol := strings.ToUpper(input[0])
-	if len(symbol) == 0 {
+	base := strings.ToUpper(input[0])
+	if len(base) == 0 {
 		return nil, errors.New("Symbol entry is invalid")
 	}
 
@@ -246,7 +241,7 @@ func ValidateInput(input []string) (*AnalysisRequest, error) {
 	}
 
 	return &AnalysisRequest{
-		Symbol:   symbol,
+		Base:     base,
 		Duration: duration,
 		Interval: interval,
 	}, nil

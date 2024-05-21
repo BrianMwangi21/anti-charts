@@ -38,7 +38,7 @@ var STRATS = []Strat{
 	{"RSI 2 Strategy", 2, "", indicator.HOLD},
 }
 
-func performAllStrategies(asset *indicator.Asset, period int) {
+func performAllStrategies(asset *indicator.Asset, period int) indicator.Action {
 	var buys, sells, holds int
 
 	strategies := []indicator.StrategyFunction{
@@ -99,6 +99,8 @@ func performAllStrategies(asset *indicator.Asset, period int) {
 	}
 	log.Info(fmt.Sprintf("STRATEGIES Summary :: BUYS = %d [%.2f], SELLS = %d [%.2f], HOLDS = %d [%.2f]", buys, buyP, sells, sellP, holds, holdP))
 	log.Info(fmt.Sprintf("STRATEGIES FINAL ACTION :: %v", finalAction))
+
+	return finalAction
 }
 
 func aggregateResults() (indicator.Action, float64, float64, float64) {

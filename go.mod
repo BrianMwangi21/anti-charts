@@ -10,7 +10,9 @@ require (
 )
 
 require (
+	cloud.google.com/go v0.113.0 // indirect
 	github.com/adshao/go-binance/v2 v2.5.0 // indirect
+	github.com/alpacahq/alpaca-trade-api-go/v3 v3.4.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
@@ -19,8 +21,10 @@ require (
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
@@ -31,9 +35,10 @@ require (
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/shopspring/decimal v1.4.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/term v0.19.0 // indirect
-	golang.org/x/text v0.3.8 // indirect
+	golang.org/x/text v0.14.0 // indirect
 )

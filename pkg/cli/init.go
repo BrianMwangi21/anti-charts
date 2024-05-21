@@ -42,8 +42,8 @@ func InitModel() Model {
 
 		switch i {
 		case 0:
-			t.Prompt = "Please enter the coin to analyze : "
-			t.Placeholder = "Example BTCUSDT, ETHUSDT"
+			t.Prompt = "Please enter the base to analyze : "
+			t.Placeholder = "Example BTC, ETH. Note: USDT will be used as the quote"
 			t.Focus()
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
