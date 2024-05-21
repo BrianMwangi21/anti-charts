@@ -23,5 +23,8 @@ go.work
 # Environment variables
 .env
 
+# Executable
+main
+
 # Extras
 videos

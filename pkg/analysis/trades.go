@@ -51,9 +51,9 @@ func performTrade(action indicator.Action) {
 
 		if err != nil {
 			log.Error("Error placing order", "err", err)
+		} else {
+			log.Info("TRADING", "orderPlaced", order.ID)
 		}
-
-		log.Info("TRADING", "orderPlaced", order.ID)
 	} else {
 		log.Info("TRADING", "action", "HOLD. Doing nothing for now")
 	}
