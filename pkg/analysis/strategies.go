@@ -16,6 +16,8 @@ type Strat struct {
 }
 
 func performAllStrategies(asset *indicator.Asset, period int) {
+	var buys, sells, holds int
+
 	strats := []Strat{
 		{"MACD Strategy", 5, ""},
 		{"RSI Strategy", 5, ""},
@@ -69,10 +71,13 @@ func performAllStrategies(asset *indicator.Asset, period int) {
 
 		if lastAction == indicator.BUY {
 			res += fmt.Sprintf("BUY recommended. ")
+			buys += 1
 		} else if lastAction == indicator.SELL {
 			res += fmt.Sprintf("SELL recommended. ")
+			sells += 1
 		} else {
 			res += fmt.Sprintf("HOLD recommended. ")
+			holds += 1
 		}
 
 		res += fmt.Sprintf("Gains = %.4f", gains[len(gains)-1])
@@ -88,4 +93,5 @@ func performAllStrategies(asset *indicator.Asset, period int) {
 		}
 		log.Info("STRATEGIES", "result", value.Result)
 	}
+	log.Info(fmt.Sprintf("STRATEGIES Summary :: BUYS = %d, SELLS = %d, HOLDS = %d", buys, sells, holds))
 }
