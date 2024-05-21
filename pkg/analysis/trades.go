@@ -40,10 +40,10 @@ func performTrade(action indicator.Action) {
 		log.Info("TRADING", "accountBalanceChange", account.Equity.Sub(account.LastEquity))
 		log.Info("TRADING", "symbol", SYMBOL)
 
-		QTY := decimal.NewFromInt(1)
+		NOTIONAL := decimal.NewFromInt(100)
 		order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
 			Symbol:      SYMBOL,
-			Qty:         &QTY,
+			Notional:    &NOTIONAL,
 			Side:        SIDE,
 			Type:        alpaca.Market,
 			TimeInForce: alpaca.IOC,
@@ -51,7 +51,6 @@ func performTrade(action indicator.Action) {
 
 		if err != nil {
 			log.Error("Error placing order", "err", err)
-			os.Exit(1)
 		}
 
 		log.Info("TRADING", "orderPlaced", order.ID)
