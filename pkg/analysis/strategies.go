@@ -13,32 +13,33 @@ type Strat struct {
 	Name   string
 	Weight int
 	Result string
+	Action indicator.Action
+}
+
+var STRATS = []Strat{
+	{"MACD Strategy", 5, "", indicator.HOLD},
+	{"RSI Strategy", 5, "", indicator.HOLD},
+	//
+	{"Chande Forecast Oscillator Strategy", 4, "", indicator.HOLD},
+	{"Trend Stategy", 4, "", indicator.HOLD},
+	{"Bollinger Bands Strategy", 4, "", indicator.HOLD},
+	{"Money Flow Index Strategy", 4, "", indicator.HOLD},
+	{"Volume Weighted Average Price Strategy", 4, "", indicator.HOLD},
+	//
+	{"KDJ Strategy", 3, "", indicator.HOLD},
+	{"Volume Weighted Moving Average", 3, "", indicator.HOLD},
+	{"Awesome Oscillator Strategy", 3, "", indicator.HOLD},
+	{"Williams R Strategy", 3, "", indicator.HOLD},
+	{"Chaikin Money Flow Strategy", 3, "", indicator.HOLD},
+	{"Ease of Movement Strategy", 3, "", indicator.HOLD},
+	{"Force Index Strategy", 3, "", indicator.HOLD},
+	//
+	{"Negative Volume Index Strategy", 2, "", indicator.HOLD},
+	{"RSI 2 Strategy", 2, "", indicator.HOLD},
 }
 
 func performAllStrategies(asset *indicator.Asset, period int) {
 	var buys, sells, holds int
-
-	strats := []Strat{
-		{"MACD Strategy", 5, ""},
-		{"RSI Strategy", 5, ""},
-		//
-		{"Chande Forecast Oscillator Strategy", 4, ""},
-		{"Trend Stategy", 4, ""},
-		{"Bollinger Bands Strategy", 4, ""},
-		{"Money Flow Index Strategy", 4, ""},
-		{"Volume Weighted Average Price Strategy", 4, ""},
-		//
-		{"KDJ Strategy", 3, ""},
-		{"Volume Weighted Moving Average", 3, ""},
-		{"Awesome Oscillator Strategy", 3, ""},
-		{"Williams R Strategy", 3, ""},
-		{"Chaikin Money Flow Strategy", 3, ""},
-		{"Ease of Movement Strategy", 3, ""},
-		{"Force Index Strategy", 3, ""},
-		//
-		{"Negative Volume Index Strategy", 2, ""},
-		{"RSI 2 Strategy", 2, ""},
-	}
 
 	strategies := []indicator.StrategyFunction{
 		indicator.MacdStrategy,
@@ -67,7 +68,7 @@ func performAllStrategies(asset *indicator.Asset, period int) {
 	for index, stratActions := range actions {
 		gains := indicator.ApplyActions(asset.Closing, stratActions)
 		lastAction := stratActions[len(stratActions)-1]
-		res := fmt.Sprintf("%v:: ", strats[index].Name)
+		res := fmt.Sprintf("%v:: ", STRATS[index].Name)
 
 		if lastAction == indicator.BUY {
 			res += fmt.Sprintf("BUY recommended. ")
@@ -81,17 +82,50 @@ func performAllStrategies(asset *indicator.Asset, period int) {
 		}
 
 		res += fmt.Sprintf("Gains = %.4f", gains[len(gains)-1])
-		strats[index].Result = res
+		STRATS[index].Result = res
+		STRATS[index].Action = lastAction
 	}
+
+	finalAction, buyP, sellP, holdP := aggregateResults()
 
 	log.Info("Strategies Results By Weight...")
 	currentWeight := 6
-	for _, value := range strats {
-		if value.Weight != currentWeight {
+	for _, strat := range STRATS {
+		if strat.Weight != currentWeight {
 			currentWeight -= 1
 			log.Info(fmt.Sprintf("=== Strategy Weight %d ===", currentWeight))
 		}
-		log.Info("STRATEGIES", "result", value.Result)
+		log.Info("STRATEGIES", "result", strat.Result)
 	}
-	log.Info(fmt.Sprintf("STRATEGIES Summary :: BUYS = %d, SELLS = %d, HOLDS = %d", buys, sells, holds))
+	log.Info(fmt.Sprintf("STRATEGIES Summary :: BUYS = %d [%.2f], SELLS = %d [%.2f], HOLDS = %d [%.2f]", buys, buyP, sells, sellP, holds, holdP))
+	log.Info(fmt.Sprintf("STRATEGIES FINAL ACTION :: %v", finalAction))
+}
+
+func aggregateResults() (indicator.Action, float64, float64, float64) {
+	var buyW, sellW, holdW, totalW int
+
+	for _, strat := range STRATS {
+		totalW += strat.Weight
+		switch strat.Action {
+		case indicator.BUY:
+			buyW += strat.Weight
+		case indicator.SELL:
+			sellW += strat.Weight
+		case indicator.HOLD:
+			holdW += strat.Weight
+		}
+	}
+
+	totalP := float64(totalW)
+	buyP := (float64(buyW) / totalP) * 100
+	sellP := (float64(sellW) / totalP) * 100
+	holdP := (float64(holdW) / totalP) * 100
+
+	if buyP > sellP && buyP > holdP {
+		return indicator.BUY, buyP, sellP, holdP
+	} else if sellP > buyP && sellP > holdP {
+		return indicator.SELL, buyP, sellP, holdP
+	} else {
+		return indicator.HOLD, buyP, sellP, holdP
+	}
 }
