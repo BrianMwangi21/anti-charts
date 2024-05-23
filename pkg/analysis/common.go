@@ -9,14 +9,15 @@ type AnalysisRequest struct {
 }
 
 var (
-	DEFAULT_QUOTE      = "USDT"
-	BINANCE_API_KEY    string
-	BINANCE_SECRET_KEY string
-	ALPACA_API_KEY     string
-	ALPACA_SECRET_KEY  string
-	ALPACA_BASE_URL    string
-	ANALYSIS_REQ       *AnalysisRequest
-	LATEST_PRICE       float64
-	ASSET              *indicator.Asset
-	USER_INPUT_CHANNEL = make(chan string)
+	DEFAULT_QUOTE        = "USDT"
+	DEFAULT_APLACA_QUOTE = "USD"
+	BINANCE_API_KEY      string
+	BINANCE_SECRET_KEY   string
+	ALPACA_API_KEY       string
+	ALPACA_SECRET_KEY    string
+	ALPACA_BASE_URL      string
+	ANALYSIS_REQ         *AnalysisRequest
+	LATEST_PRICE         float64
+	ASSET                *indicator.Asset
+	USER_INPUT_CHANNEL   = make(chan string)
 )
