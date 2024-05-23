@@ -67,7 +67,6 @@ func StartAnalysis(analysisRequest *AnalysisRequest) {
 }
 
 func RestartAnalysis() {
-	seconds := 300
 	fmt.Println()
 	fmt.Print("\033[s")
 
@@ -77,7 +76,7 @@ func RestartAnalysis() {
 		USER_INPUT_CHANNEL <- input
 	}()
 
-	for seconds > 0 {
+	for WAIT_SECONDS > 0 {
 		select {
 		// Check if user pressed enter
 		case userInput := <-USER_INPUT_CHANNEL:
@@ -86,9 +85,9 @@ func RestartAnalysis() {
 				return
 			}
 		default:
-			fmt.Printf("Restarting Analysis in %v seconds... (Press Enter at any point to skip wait)", seconds)
+			fmt.Printf("Restarting Analysis in %v seconds... (Press Enter at any point to skip wait)", WAIT_SECONDS)
 			time.Sleep(time.Second)
-			seconds--
+			WAIT_SECONDS--
 			fmt.Print("\033[u\033[K")
 		}
 	}
@@ -240,11 +239,39 @@ func ValidateInput(input []string) (*AnalysisRequest, error) {
 		return nil, errors.New("Interval entry is invalid")
 	}
 
+	WAIT_SECONDS = getIntervalToSeconds(interval)
+
 	return &AnalysisRequest{
 		Base:     base,
 		Duration: duration,
 		Interval: interval,
 	}, nil
+}
+
+func getIntervalToSeconds(interval string) int {
+	intervalMap := map[string]int{
+		"1m":  60,
+		"3m":  180,
+		"5m":  300,
+		"15m": 900,
+		"30m": 1800,
+		"1h":  3600,
+		"2h":  7200,
+		"4h":  14400,
+		"6h":  21600,
+		"8h":  28800,
+		"12h": 43200,
+		"1d":  86400,
+		"3d":  259200,
+		"1w":  604800,
+		"1M":  2592000,
+	}
+
+	seconds := intervalMap[interval]
+	if seconds > 900 {
+		return 900
+	}
+	return seconds
 }
 
 func trackTime(analysisName string, start time.Time) {

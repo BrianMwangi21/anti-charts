@@ -11,6 +11,7 @@ type AnalysisRequest struct {
 var (
 	DEFAULT_QUOTE        = "USDT"
 	DEFAULT_APLACA_QUOTE = "USD"
+	WAIT_SECONDS         = 300
 	BINANCE_API_KEY      string
 	BINANCE_SECRET_KEY   string
 	ALPACA_API_KEY       string

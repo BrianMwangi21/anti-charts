@@ -71,20 +71,20 @@ func performSellTrade(client *alpaca.Client, symbol string) {
 	position, err := client.GetPosition(symbol)
 	if err != nil {
 		log.Error("Error getting position", "err", err)
-	}
-
-	QTY := position.QtyAvailable
-	order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
-		Symbol:      symbol,
-		Qty:         &QTY,
-		Side:        alpaca.Sell,
-		Type:        alpaca.Market,
-		TimeInForce: alpaca.IOC,
-	})
-
-	if err != nil {
-		log.Error("Error placing order", "err", err)
 	} else {
-		log.Info("TRADING", "sellOrderPlaced", order.ID)
+		QTY := position.QtyAvailable
+		order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
+			Symbol:      symbol,
+			Qty:         &QTY,
+			Side:        alpaca.Sell,
+			Type:        alpaca.Market,
+			TimeInForce: alpaca.IOC,
+		})
+
+		if err != nil {
+			log.Error("Error placing sell order", "err", err)
+		} else {
+			log.Info("TRADING", "sellOrderPlaced", order.ID)
+		}
 	}
 }
