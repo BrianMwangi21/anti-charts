@@ -41,10 +41,11 @@ func init() {
 }
 
 func StartAnalysis(analysisRequest *AnalysisRequest) {
+	performCleanup()
 	ANALYSIS_REQ = analysisRequest
 	log.Info("Starting Analysis...")
 
-	client := binance.NewClient(BINANCE_API_KEY, BINANCE_SECRET_KEY)
+	client := getBinanceClient()
 	symbol := ANALYSIS_REQ.Base + DEFAULT_QUOTE
 	fetchLatestPrice(client, symbol)
 

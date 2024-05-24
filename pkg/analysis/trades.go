@@ -17,11 +17,7 @@ func performTrade(action indicator.Action) {
 	SYMBOL := ANALYSIS_REQ.Base + DEFAULT_APLACA_QUOTE
 
 	if action == indicator.BUY || action == indicator.SELL {
-		client := alpaca.NewClient(alpaca.ClientOpts{
-			APIKey:    ALPACA_API_KEY,
-			APISecret: ALPACA_SECRET_KEY,
-			BaseURL:   ALPACA_BASE_URL,
-		})
+		client := getAlpacaClient()
 
 		account, err := client.GetAccount()
 		if err != nil {
@@ -87,4 +83,14 @@ func performSellTrade(client *alpaca.Client, symbol string) {
 			log.Info("TRADING", "sellOrderPlaced", order.ID)
 		}
 	}
+}
+
+func performCleanup() {
+	symbol := ANALYSIS_REQ.Base + DEFAULT_APLACA_QUOTE
+	client := getAlpacaClient()
+
+	log.Info("Performing Cleanup...")
+	start := time.Now()
+	defer trackTime("Performing Cleanup", start)
+	performSellTrade(client, symbol)
 }

@@ -1,6 +1,12 @@
 package analysis
 
-import "github.com/cinar/indicator"
+import (
+	"sync"
+
+	"github.com/adshao/go-binance/v2"
+	"github.com/alpacahq/alpaca-trade-api-go/v3/alpaca"
+	"github.com/cinar/indicator"
+)
 
 type AnalysisRequest struct {
 	Base     string
@@ -21,4 +27,26 @@ var (
 	LATEST_PRICE         float64
 	ASSET                *indicator.Asset
 	USER_INPUT_CHANNEL   = make(chan string)
+	ALPACA_CLIENT        *alpaca.Client
+	ONCE_ALPACA          sync.Once
+	BINANCE_CLIENT       *binance.Client
+	ONCE_BINANCE         sync.Once
 )
+
+func getBinanceClient() *binance.Client {
+	ONCE_BINANCE.Do(func() {
+		BINANCE_CLIENT = binance.NewClient(BINANCE_API_KEY, BINANCE_SECRET_KEY)
+	})
+	return BINANCE_CLIENT
+}
+
+func getAlpacaClient() *alpaca.Client {
+	ONCE_ALPACA.Do(func() {
+		ALPACA_CLIENT = alpaca.NewClient(alpaca.ClientOpts{
+			APIKey:    ALPACA_API_KEY,
+			APISecret: ALPACA_SECRET_KEY,
+			BaseURL:   ALPACA_BASE_URL,
+		})
+	})
+	return ALPACA_CLIENT
+}
