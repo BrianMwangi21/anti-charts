@@ -41,8 +41,9 @@ func init() {
 }
 
 func StartAnalysis(analysisRequest *AnalysisRequest) {
-	performCleanup()
 	ANALYSIS_REQ = analysisRequest
+	performCleanup()
+
 	log.Info("Starting Analysis...")
 
 	client := getBinanceClient()
