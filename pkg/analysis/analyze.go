@@ -42,8 +42,6 @@ func init() {
 
 func StartAnalysis(analysisRequest *AnalysisRequest) {
 	ANALYSIS_REQ = analysisRequest
-	performCleanup()
-
 	log.Info("Starting Analysis...")
 
 	client := getBinanceClient()
@@ -83,6 +81,7 @@ func RestartAnalysis() {
 		// Check if user pressed enter
 		case userInput := <-USER_INPUT_CHANNEL:
 			if userInput == "" {
+				performCleanup()
 				StartAnalysis(ANALYSIS_REQ)
 				return
 			}
@@ -94,6 +93,7 @@ func RestartAnalysis() {
 		}
 	}
 
+	performCleanup()
 	StartAnalysis(ANALYSIS_REQ)
 }
 

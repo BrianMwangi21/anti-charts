@@ -69,18 +69,39 @@ func performSellTrade(client *alpaca.Client, symbol string) {
 		log.Error("Error getting position", "err", err)
 	} else {
 		QTY := position.QtyAvailable
-		order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
-			Symbol:      symbol,
-			Qty:         &QTY,
-			Side:        alpaca.Sell,
-			Type:        alpaca.Market,
-			TimeInForce: alpaca.IOC,
-		})
+		MARKET_VALUE := position.MarketValue
+		NOTIONAL := decimal.NewFromInt(120)
 
-		if err != nil {
-			log.Error("Error placing sell order", "err", err)
+		if MARKET_VALUE.GreaterThan(NOTIONAL) {
+			log.Info("TRADING", "placingSellUsing", "Notional")
+			order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
+				Symbol:      symbol,
+				Notional:    &NOTIONAL,
+				Side:        alpaca.Sell,
+				Type:        alpaca.Market,
+				TimeInForce: alpaca.IOC,
+			})
+
+			if err != nil {
+				log.Error("Error placing sell order using NOTIONAL", "err", err)
+			} else {
+				log.Info("TRADING", "sellOrderPlaced", order.ID)
+			}
 		} else {
-			log.Info("TRADING", "sellOrderPlaced", order.ID)
+			log.Info("TRADING", "placingSellUsing", "QtyAvailable")
+			order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
+				Symbol:      symbol,
+				Qty:         &QTY,
+				Side:        alpaca.Sell,
+				Type:        alpaca.Market,
+				TimeInForce: alpaca.IOC,
+			})
+
+			if err != nil {
+				log.Error("Error placing sell order using QTY", "err", err)
+			} else {
+				log.Info("TRADING", "sellOrderPlaced", order.ID)
+			}
 		}
 	}
 }
