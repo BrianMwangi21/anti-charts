@@ -70,6 +70,8 @@ func RestartAnalysis() {
 	fmt.Println()
 	fmt.Print("\033[s")
 
+	WAIT_SECONDS = getIntervalToSeconds(ANALYSIS_REQ.Interval)
+
 	go func() {
 		var input string
 		fmt.Scanln(&input)
@@ -78,7 +80,6 @@ func RestartAnalysis() {
 
 	for WAIT_SECONDS > 0 {
 		select {
-		// Check if user pressed enter
 		case userInput := <-USER_INPUT_CHANNEL:
 			if userInput == "" {
 				performCleanup()
