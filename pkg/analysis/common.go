@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"sync"
+	"time"
 
 	"github.com/adshao/go-binance/v2"
 	"github.com/alpacahq/alpaca-trade-api-go/v3/alpaca"
@@ -43,9 +44,10 @@ func getBinanceClient() *binance.Client {
 func getAlpacaClient() *alpaca.Client {
 	ONCE_ALPACA.Do(func() {
 		ALPACA_CLIENT = alpaca.NewClient(alpaca.ClientOpts{
-			APIKey:    ALPACA_API_KEY,
-			APISecret: ALPACA_SECRET_KEY,
-			BaseURL:   ALPACA_BASE_URL,
+			APIKey:     ALPACA_API_KEY,
+			APISecret:  ALPACA_SECRET_KEY,
+			BaseURL:    ALPACA_BASE_URL,
+			RetryDelay: 3 * time.Second,
 		})
 	})
 	return ALPACA_CLIENT
