@@ -26,6 +26,7 @@ func performTrade(action indicator.Action) {
 		}
 		log.Info("TRADING", "accountBuyingPower", account.BuyingPower)
 		log.Info("TRADING", "accountBalanceChange", account.Equity.Sub(account.LastEquity))
+		log.Info("TRADING", "accountPortfolioValue", account.PortfolioValue)
 		log.Info("TRADING", "symbol", SYMBOL)
 
 		if action == indicator.BUY {
