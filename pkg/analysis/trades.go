@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -128,6 +129,7 @@ func CheckMetrics() {
 	accountBalanceChange := account.Equity.Sub(account.LastEquity)
 	accountPercentageChange := accountBalanceChange.Div(account.LastEquity).Mul(decimal.NewFromInt(100))
 
+	fmt.Println()
 	log.Info("================")
 	log.Info("CHECKING METRICS", "accountBuyingPower", account.BuyingPower)
 	log.Info("CHECKING METRICS", "accountPortfolioValue", account.PortfolioValue)
