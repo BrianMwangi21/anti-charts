@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"time"
 
 	analysis "github.com/BrianMwangi21/anti-charts.git/pkg/analysis"
 	cli "github.com/BrianMwangi21/anti-charts.git/pkg/cli"
@@ -25,7 +26,18 @@ func main() {
 				os.Exit(1)
 			}
 
+			ticker := time.NewTicker(time.Duration(analysis.CHECK_METRICS_WAIT_SECONDS) * time.Second)
+			go func() {
+				for {
+					select {
+					case <-ticker.C:
+						analysis.CheckMetrics()
+					}
+				}
+			}()
+
 			analysis.StartAnalysis(analysisRequest)
+
 		}
 	}
 

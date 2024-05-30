@@ -18,19 +18,14 @@ func performTrade(action indicator.Action) {
 
 	if action == indicator.BUY || action == indicator.SELL {
 		client := getAlpacaClient()
-
 		account, err := client.GetAccount()
 		if err != nil {
 			log.Error("Error getting account", "err", err)
 			os.Exit(1)
 		}
-		log.Info("TRADING", "accountBuyingPower", account.BuyingPower)
-		log.Info("TRADING", "accountBalanceChange", account.Equity.Sub(account.LastEquity))
-		log.Info("TRADING", "accountPortfolioValue", account.PortfolioValue)
-		log.Info("TRADING", "symbol", SYMBOL)
 
 		if action == indicator.BUY {
-			performBuyTrade(client, SYMBOL)
+			performBuyTrade(client, account.BuyingPower, SYMBOL)
 		} else if action == indicator.SELL {
 			performSellTrade(client, SYMBOL)
 		}
@@ -39,24 +34,29 @@ func performTrade(action indicator.Action) {
 	}
 }
 
-func performBuyTrade(client *alpaca.Client, symbol string) {
+func performBuyTrade(client *alpaca.Client, buyingPower decimal.Decimal, symbol string) {
 	log.Info("Performing Buy Trade...")
 	start := time.Now()
 	defer trackTime("Performing Buy Trade", start)
 
-	NOTIONAL := decimal.NewFromInt(100)
-	order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
-		Symbol:      symbol,
-		Notional:    &NOTIONAL,
-		Side:        alpaca.Buy,
-		Type:        alpaca.Market,
-		TimeInForce: alpaca.IOC,
-	})
+	notional := decimal.NewFromInt(DEFAULT_NOTIONAL_VALUE)
 
-	if err != nil {
-		log.Error("Error placing buy order", "err", err)
+	if buyingPower.GreaterThan(notional) {
+		order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
+			Symbol:      symbol,
+			Notional:    &notional,
+			Side:        alpaca.Buy,
+			Type:        alpaca.Market,
+			TimeInForce: alpaca.IOC,
+		})
+
+		if err != nil {
+			log.Error("Error placing buy order", "err", err)
+		} else {
+			log.Info("TRADING", "buyOrderPlaced", order.ID)
+		}
 	} else {
-		log.Info("TRADING", "buyOrderPlaced", order.ID)
+		log.Info("TRADING", "action", "NO BUY. Not enough buying power")
 	}
 }
 
@@ -69,15 +69,15 @@ func performSellTrade(client *alpaca.Client, symbol string) {
 	if err != nil {
 		log.Error("Error getting position", "err", err)
 	} else {
-		QTY := position.QtyAvailable
-		MARKET_VALUE := position.MarketValue
-		NOTIONAL := decimal.NewFromInt(120)
+		qty := position.QtyAvailable
+		marketValue := position.MarketValue
+		notional := decimal.NewFromInt(DEFAULT_NOTIONAL_VALUE)
 
-		if MARKET_VALUE.GreaterThan(NOTIONAL) {
+		if marketValue.GreaterThan(notional) {
 			log.Info("TRADING", "placingSellUsing", "Notional")
 			order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
 				Symbol:      symbol,
-				Notional:    &NOTIONAL,
+				Notional:    &notional,
 				Side:        alpaca.Sell,
 				Type:        alpaca.Market,
 				TimeInForce: alpaca.IOC,
@@ -92,7 +92,7 @@ func performSellTrade(client *alpaca.Client, symbol string) {
 			log.Info("TRADING", "placingSellUsing", "QtyAvailable")
 			order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
 				Symbol:      symbol,
-				Qty:         &QTY,
+				Qty:         &qty,
 				Side:        alpaca.Sell,
 				Type:        alpaca.Market,
 				TimeInForce: alpaca.IOC,
@@ -115,4 +115,28 @@ func performCleanup() {
 	start := time.Now()
 	defer trackTime("Performing Cleanup", start)
 	performSellTrade(client, symbol)
+}
+
+func CheckMetrics() {
+	client := getAlpacaClient()
+	account, err := client.GetAccount()
+	if err != nil {
+		log.Error("Error getting account", "err", err)
+		os.Exit(1)
+	}
+
+	accountBalanceChange := account.Equity.Sub(account.LastEquity)
+	accountPercentageChange := accountBalanceChange.Div(account.LastEquity).Mul(decimal.NewFromInt(100))
+
+	log.Info("================")
+	log.Info("CHECKING METRICS", "accountBuyingPower", account.BuyingPower)
+	log.Info("CHECKING METRICS", "accountPortfolioValue", account.PortfolioValue)
+	log.Info("CHECKING METRICS", "accountBalanceChange", accountBalanceChange)
+	log.Info("CHECKING METRICS", "accountPercentageChange", accountPercentageChange)
+
+	if accountPercentageChange.GreaterThan(decimal.NewFromInt(DEFAULT_PORTFOLIO_CHANGE)) {
+		log.Info("CHECKING METRICS", "We made some good money. Exiting now.")
+		os.Exit(1)
+	}
+	log.Info("================")
 }
