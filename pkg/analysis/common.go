@@ -16,25 +16,24 @@ type AnalysisRequest struct {
 }
 
 var (
-	DEFAULT_QUOTE              = "USDT"
-	DEFAULT_APLACA_QUOTE       = "USD"
-	WAIT_SECONDS               = 300
-	CHECK_METRICS_WAIT_SECONDS = 30
-	DEFAULT_NOTIONAL_VALUE     = int64(10)
-	DEFAULT_PORTFOLIO_CHANGE   = int64(10)
-	BINANCE_API_KEY            string
-	BINANCE_SECRET_KEY         string
-	ALPACA_API_KEY             string
-	ALPACA_SECRET_KEY          string
-	ALPACA_BASE_URL            string
-	ANALYSIS_REQ               *AnalysisRequest
-	LATEST_PRICE               float64
-	ASSET                      *indicator.Asset
-	USER_INPUT_CHANNEL         = make(chan string)
-	ALPACA_CLIENT              *alpaca.Client
-	ONCE_ALPACA                sync.Once
-	BINANCE_CLIENT             *binance.Client
-	ONCE_BINANCE               sync.Once
+	DEFAULT_QUOTE            = "USDT"
+	DEFAULT_APLACA_QUOTE     = "USD"
+	WAIT_SECONDS             = 300
+	DEFAULT_NOTIONAL_VALUE   = int64(10)
+	DEFAULT_PORTFOLIO_CHANGE = int64(10)
+	BINANCE_API_KEY          string
+	BINANCE_SECRET_KEY       string
+	ALPACA_API_KEY           string
+	ALPACA_SECRET_KEY        string
+	ALPACA_BASE_URL          string
+	ANALYSIS_REQ             *AnalysisRequest
+	LATEST_PRICE             float64
+	ASSET                    *indicator.Asset
+	USER_INPUT_CHANNEL       = make(chan string)
+	ALPACA_CLIENT            *alpaca.Client
+	ONCE_ALPACA              sync.Once
+	BINANCE_CLIENT           *binance.Client
+	ONCE_BINANCE             sync.Once
 )
 
 func getBinanceClient() *binance.Client {

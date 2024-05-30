@@ -26,7 +26,7 @@ func main() {
 				os.Exit(1)
 			}
 
-			ticker := time.NewTicker(time.Duration(analysis.CHECK_METRICS_WAIT_SECONDS) * time.Second)
+			ticker := time.NewTicker(1 * time.Minute)
 			go func() {
 				for {
 					select {
@@ -37,7 +37,6 @@ func main() {
 			}()
 
 			analysis.StartAnalysis(analysisRequest)
-
 		}
 	}
 
