@@ -17,7 +17,7 @@ func performTrade(action indicator.Action) {
 	defer trackTime("Performing Trade", start)
 	SYMBOL := ANALYSIS_REQ.Base + DEFAULT_APLACA_QUOTE
 
-	if (action == indicator.BUY || action == indicator.SELL) && !HOLD_STOCK {
+	if action == indicator.BUY || action == indicator.SELL {
 		client := getAlpacaClient()
 		account, err := client.GetAccount()
 		if err != nil {
@@ -32,10 +32,6 @@ func performTrade(action indicator.Action) {
 		}
 	} else {
 		log.Info("TRADING", "action", "HOLD. Doing nothing for now")
-
-		if HOLD_STOCK {
-			HOLD_STOCK = false
-		}
 	}
 }
 

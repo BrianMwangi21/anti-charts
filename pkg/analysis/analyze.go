@@ -296,12 +296,6 @@ func saveLastActions(action indicator.Action) {
 		DUMP_STOCK = true
 		log.Info("LASTACTIONS", "action", "DUMP_STOCK=True")
 	}
-
-	// Special Case: If previous action is BUY, HOLD
-	if aLen >= 2 && LAST_ACTIONS[aLen-1] == indicator.BUY && LAST_ACTIONS[aLen-2] == indicator.BUY {
-		HOLD_STOCK = true
-		log.Info("LASTACTIONS", "action", "HOLD_STOCK=True")
-	}
 }
 
 func trackTime(analysisName string, start time.Time) {
