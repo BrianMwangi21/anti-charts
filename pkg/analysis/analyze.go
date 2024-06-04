@@ -62,6 +62,7 @@ func StartAnalysis(analysisRequest *AnalysisRequest) {
 	saveData(klines)
 	performAnalysis()
 	finalAction := performStrategies()
+	saveLastActions(finalAction)
 	performTrade(finalAction)
 	RestartAnalysis()
 }
@@ -275,6 +276,32 @@ func getIntervalToSeconds(interval string) int {
 		return 900
 	}
 	return seconds
+}
+
+func saveLastActions(action indicator.Action) {
+	log.Info("Saving Last Actions...")
+	start := time.Now()
+	defer trackTime("Saving Last Actions", start)
+
+	LAST_ACTIONS = append(LAST_ACTIONS, action)
+
+	if len(LAST_ACTIONS) > 5 {
+		LAST_ACTIONS = LAST_ACTIONS[1:]
+	}
+
+	aLen := len(LAST_ACTIONS)
+
+	// Special Case: If last three actions are SELL, DUMP
+	if aLen > 3 && LAST_ACTIONS[aLen-1] == indicator.SELL && LAST_ACTIONS[aLen-2] == indicator.SELL && LAST_ACTIONS[aLen-3] == indicator.SELL {
+		DUMP_STOCK = true
+		log.Info("LASTACTIONS", "action", "DUMP_STOCK=True")
+	}
+
+	// Special Case: If previous action is BUY, HOLD
+	if aLen > 1 && LAST_ACTIONS[aLen-1] == indicator.BUY {
+		HOLD_STOCK = true
+		log.Info("LASTACTIONS", "action", "HOLD_STOCK=True")
+	}
 }
 
 func trackTime(analysisName string, start time.Time) {

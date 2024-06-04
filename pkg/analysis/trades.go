@@ -17,7 +17,7 @@ func performTrade(action indicator.Action) {
 	defer trackTime("Performing Trade", start)
 	SYMBOL := ANALYSIS_REQ.Base + DEFAULT_APLACA_QUOTE
 
-	if action == indicator.BUY || action == indicator.SELL {
+	if (action == indicator.BUY || action == indicator.SELL) && !HOLD_STOCK {
 		client := getAlpacaClient()
 		account, err := client.GetAccount()
 		if err != nil {
@@ -32,6 +32,10 @@ func performTrade(action indicator.Action) {
 		}
 	} else {
 		log.Info("TRADING", "action", "HOLD. Doing nothing for now")
+
+		if HOLD_STOCK {
+			HOLD_STOCK = false
+		}
 	}
 }
 
@@ -74,22 +78,7 @@ func performSellTrade(client *alpaca.Client, symbol string) {
 		marketValue := position.MarketValue
 		notional := decimal.NewFromInt(DEFAULT_NOTIONAL_VALUE)
 
-		if marketValue.GreaterThan(notional) {
-			log.Info("TRADING", "placingSellUsing", "Notional")
-			order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
-				Symbol:      symbol,
-				Notional:    &notional,
-				Side:        alpaca.Sell,
-				Type:        alpaca.Market,
-				TimeInForce: alpaca.IOC,
-			})
-
-			if err != nil {
-				log.Error("Error placing sell order using NOTIONAL", "err", err)
-			} else {
-				log.Info("TRADING", "sellOrderPlaced", order.ID)
-			}
-		} else {
+		if marketValue.LessThan(notional) || DUMP_STOCK {
 			log.Info("TRADING", "placingSellUsing", "QtyAvailable")
 			order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
 				Symbol:      symbol,
@@ -101,6 +90,25 @@ func performSellTrade(client *alpaca.Client, symbol string) {
 
 			if err != nil {
 				log.Error("Error placing sell order using QTY", "err", err)
+			} else {
+				log.Info("TRADING", "sellOrderPlaced", order.ID)
+			}
+
+			if DUMP_STOCK {
+				DUMP_STOCK = false
+			}
+		} else {
+			log.Info("TRADING", "placingSellUsing", "Notional")
+			order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
+				Symbol:      symbol,
+				Notional:    &notional,
+				Side:        alpaca.Sell,
+				Type:        alpaca.Market,
+				TimeInForce: alpaca.IOC,
+			})
+
+			if err != nil {
+				log.Error("Error placing sell order using NOTIONAL", "err", err)
 			} else {
 				log.Info("TRADING", "sellOrderPlaced", order.ID)
 			}
@@ -135,10 +143,10 @@ func CheckMetrics() {
 	log.Info("CHECKING METRICS", "accountPortfolioValue", account.PortfolioValue)
 	log.Info("CHECKING METRICS", "accountBalanceChange", accountBalanceChange)
 	log.Info("CHECKING METRICS", "accountPercentageChange", accountPercentageChange)
+	log.Info("CHECKING METRICS", "lastActions", LAST_ACTIONS)
 
 	if accountPercentageChange.GreaterThan(decimal.NewFromInt(DEFAULT_PORTFOLIO_CHANGE)) {
-		log.Info("CHECKING METRICS", "We made some good money. Exiting now.")
-		os.Exit(1)
+		log.Info("CHECKING METRICS", "We made some good money.")
 	}
 	log.Info("================")
 }
