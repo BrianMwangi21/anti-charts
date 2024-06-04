@@ -292,13 +292,13 @@ func saveLastActions(action indicator.Action) {
 	aLen := len(LAST_ACTIONS)
 
 	// Special Case: If last three actions are SELL, DUMP
-	if aLen > 3 && LAST_ACTIONS[aLen-1] == indicator.SELL && LAST_ACTIONS[aLen-2] == indicator.SELL && LAST_ACTIONS[aLen-3] == indicator.SELL {
+	if aLen >= 3 && LAST_ACTIONS[aLen-1] == indicator.SELL && LAST_ACTIONS[aLen-2] == indicator.SELL && LAST_ACTIONS[aLen-3] == indicator.SELL {
 		DUMP_STOCK = true
 		log.Info("LASTACTIONS", "action", "DUMP_STOCK=True")
 	}
 
 	// Special Case: If previous action is BUY, HOLD
-	if aLen > 1 && LAST_ACTIONS[aLen-1] == indicator.BUY {
+	if aLen >= 2 && LAST_ACTIONS[aLen-1] == indicator.BUY && LAST_ACTIONS[aLen-2] == indicator.BUY {
 		HOLD_STOCK = true
 		log.Info("LASTACTIONS", "action", "HOLD_STOCK=True")
 	}
