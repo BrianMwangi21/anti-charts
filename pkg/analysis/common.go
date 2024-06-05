@@ -36,6 +36,7 @@ var (
 	ONCE_BINANCE             sync.Once
 	LAST_ACTIONS             []indicator.Action
 	DUMP_STOCK               bool
+	WHALE_BUY                bool
 )
 
 func getBinanceClient() *binance.Client {

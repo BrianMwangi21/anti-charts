@@ -42,6 +42,11 @@ func performBuyTrade(client *alpaca.Client, buyingPower decimal.Decimal, symbol 
 
 	notional := decimal.NewFromInt(DEFAULT_NOTIONAL_VALUE)
 
+	if WHALE_BUY {
+		notional = buyingPower.Div(decimal.NewFromInt(2))
+		WHALE_BUY = false
+	}
+
 	if buyingPower.GreaterThan(notional) {
 		order, err := client.PlaceOrder(alpaca.PlaceOrderRequest{
 			Symbol:      symbol,
@@ -54,7 +59,7 @@ func performBuyTrade(client *alpaca.Client, buyingPower decimal.Decimal, symbol 
 		if err != nil {
 			log.Error("Error placing buy order", "err", err)
 		} else {
-			log.Info("TRADING", "buyOrderPlaced", order.ID)
+			log.Info("TRADING", "buyOrderPlaced", order.ID, "amount", notional)
 		}
 	} else {
 		log.Info("TRADING", "action", "NO BUY. Not enough buying power")
@@ -87,7 +92,7 @@ func performSellTrade(client *alpaca.Client, symbol string) {
 			if err != nil {
 				log.Error("Error placing sell order using QTY", "err", err)
 			} else {
-				log.Info("TRADING", "sellOrderPlaced", order.ID)
+				log.Info("TRADING", "sellOrderPlaced", order.ID, "amount", qty)
 			}
 
 			if DUMP_STOCK {
@@ -106,7 +111,7 @@ func performSellTrade(client *alpaca.Client, symbol string) {
 			if err != nil {
 				log.Error("Error placing sell order using NOTIONAL", "err", err)
 			} else {
-				log.Info("TRADING", "sellOrderPlaced", order.ID)
+				log.Info("TRADING", "sellOrderPlaced", order.ID, "amount", notional)
 			}
 		}
 	}

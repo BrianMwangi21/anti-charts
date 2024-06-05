@@ -292,9 +292,11 @@ func saveLastActions(action indicator.Action) {
 	aLen := len(LAST_ACTIONS)
 
 	// Special Case: If last three actions are SELL, DUMP
+	// Then on the next BUY, buy LARGE
 	if aLen >= 3 && LAST_ACTIONS[aLen-1] == indicator.SELL && LAST_ACTIONS[aLen-2] == indicator.SELL && LAST_ACTIONS[aLen-3] == indicator.SELL {
 		DUMP_STOCK = true
-		log.Info("LASTACTIONS", "action", "DUMP_STOCK=True")
+		WHALE_BUY = true
+		log.Info("LASTACTIONS", "action", "DUMP_STOCK=True, WHALE_BUY=True")
 	}
 }
 
