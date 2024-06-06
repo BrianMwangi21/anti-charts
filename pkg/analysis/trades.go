@@ -148,6 +148,7 @@ func CheckMetrics() {
 
 	if accountPercentageChange.GreaterThan(decimal.NewFromInt(DEFAULT_PORTFOLIO_CHANGE)) {
 		log.Info("CHECKING METRICS", "We made some good money.")
+		os.Exit(1)
 	}
 	log.Info("================")
 }
