@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -35,6 +36,21 @@ func main() {
 					}
 				}
 			}()
+
+			// Start execution at multiples of 5 for symmetry
+			var currentTime time.Time
+			log.Info("Checking time...")
+			for {
+				currentTime = time.Now()
+				minutes := currentTime.Minute()
+
+				if minutes%5 == 0 {
+					break
+				}
+
+				time.Sleep(10 * time.Second)
+			}
+			log.Info(fmt.Sprintf("Time started %v", currentTime.Format(time.RFC3339)))
 
 			analysis.StartAnalysis(analysisRequest)
 		}

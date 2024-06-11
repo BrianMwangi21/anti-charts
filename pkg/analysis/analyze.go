@@ -28,6 +28,7 @@ func init() {
 	ALPACA_API_KEY = os.Getenv("ALPACA_API_KEY")
 	ALPACA_SECRET_KEY = os.Getenv("ALPACA_SECRET_KEY")
 	ALPACA_BASE_URL = os.Getenv("ALPACA_BASE_URL")
+	special_cases := os.Getenv("SPECIAL_CASES_STRING")
 
 	if BINANCE_API_KEY == "" || BINANCE_SECRET_KEY == "" {
 		log.Error("Error getting Binance keys")
@@ -36,6 +37,15 @@ func init() {
 
 	if ALPACA_API_KEY == "" || ALPACA_SECRET_KEY == "" || ALPACA_BASE_URL == "" {
 		log.Error("Error getting Alpaca keys")
+		os.Exit(1)
+	}
+
+	if special_cases == "True" {
+		SPECIAL_CASES = true
+	} else if special_cases == "False" {
+		SPECIAL_CASES = false
+	} else {
+		log.Error("Error getting Special Cases key")
 		os.Exit(1)
 	}
 }
@@ -291,12 +301,15 @@ func saveLastActions(action indicator.Action) {
 
 	aLen := len(LAST_ACTIONS)
 
-	// Special Case: If last three actions are SELL, DUMP
+	// Special Case: If True
+	// If last three actions are SELL, DUMP
 	// Then on the next BUY, buy LARGE
-	if aLen >= 3 && LAST_ACTIONS[aLen-1] == indicator.SELL && LAST_ACTIONS[aLen-2] == indicator.SELL && LAST_ACTIONS[aLen-3] == indicator.SELL {
-		DUMP_STOCK = true
-		WHALE_BUY = true
-		log.Info("LASTACTIONS", "action", "DUMP_STOCK=True, WHALE_BUY=True")
+	if SPECIAL_CASES {
+		if aLen >= 3 && LAST_ACTIONS[aLen-1] == indicator.SELL && LAST_ACTIONS[aLen-2] == indicator.SELL && LAST_ACTIONS[aLen-3] == indicator.SELL {
+			DUMP_STOCK = true
+			WHALE_BUY = true
+			log.Info("LASTACTIONS", "action", "DUMP_STOCK=True, WHALE_BUY=True")
+		}
 	}
 }
 
