@@ -28,7 +28,7 @@ func init() {
 	ALPACA_API_KEY = os.Getenv("ALPACA_API_KEY")
 	ALPACA_SECRET_KEY = os.Getenv("ALPACA_SECRET_KEY")
 	ALPACA_BASE_URL = os.Getenv("ALPACA_BASE_URL")
-	special_cases := os.Getenv("SPECIAL_CASES_STRING")
+	special_cases := os.Getenv("SPECIAL_CASES")
 
 	if BINANCE_API_KEY == "" || BINANCE_SECRET_KEY == "" {
 		log.Error("Error getting Binance keys")
