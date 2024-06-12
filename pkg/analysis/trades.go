@@ -118,13 +118,15 @@ func performSellTrade(client *alpaca.Client, symbol string) {
 }
 
 func performCleanup() {
-	symbol := ANALYSIS_REQ.Base + DEFAULT_APLACA_QUOTE
-	client := getAlpacaClient()
+	if PERFORM_TRADES {
+		symbol := ANALYSIS_REQ.Base + DEFAULT_APLACA_QUOTE
+		client := getAlpacaClient()
 
-	log.Info("Performing Cleanup...")
-	start := time.Now()
-	defer trackTime("Performing Cleanup", start)
-	performSellTrade(client, symbol)
+		log.Info("Performing Cleanup...")
+		start := time.Now()
+		defer trackTime("Performing Cleanup", start)
+		performSellTrade(client, symbol)
+	}
 }
 
 func CheckMetrics() {

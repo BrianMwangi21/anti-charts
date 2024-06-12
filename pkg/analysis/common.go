@@ -35,6 +35,7 @@ var (
 	BINANCE_CLIENT           *binance.Client
 	ONCE_BINANCE             sync.Once
 	LAST_ACTIONS             []indicator.Action
+	PERFORM_TRADES           bool
 	SPECIAL_CASES            bool
 	DUMP_STOCK               bool
 	WHALE_BUY                bool

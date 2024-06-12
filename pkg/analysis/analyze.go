@@ -13,42 +13,7 @@ import (
 	"github.com/adshao/go-binance/v2"
 	"github.com/charmbracelet/log"
 	"github.com/cinar/indicator"
-	"github.com/joho/godotenv"
 )
-
-func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Error("Error loading .env file")
-		os.Exit(1)
-	}
-
-	BINANCE_API_KEY = os.Getenv("BINANCE_API_KEY")
-	BINANCE_SECRET_KEY = os.Getenv("BINANCE_SECRET_KEY")
-	ALPACA_API_KEY = os.Getenv("ALPACA_API_KEY")
-	ALPACA_SECRET_KEY = os.Getenv("ALPACA_SECRET_KEY")
-	ALPACA_BASE_URL = os.Getenv("ALPACA_BASE_URL")
-	special_cases := os.Getenv("SPECIAL_CASES")
-
-	if BINANCE_API_KEY == "" || BINANCE_SECRET_KEY == "" {
-		log.Error("Error getting Binance keys")
-		os.Exit(1)
-	}
-
-	if ALPACA_API_KEY == "" || ALPACA_SECRET_KEY == "" || ALPACA_BASE_URL == "" {
-		log.Error("Error getting Alpaca keys")
-		os.Exit(1)
-	}
-
-	if special_cases == "True" {
-		SPECIAL_CASES = true
-	} else if special_cases == "False" {
-		SPECIAL_CASES = false
-	} else {
-		log.Error("Error getting Special Cases key")
-		os.Exit(1)
-	}
-}
 
 func StartAnalysis(analysisRequest *AnalysisRequest) {
 	ANALYSIS_REQ = analysisRequest
@@ -73,7 +38,9 @@ func StartAnalysis(analysisRequest *AnalysisRequest) {
 	performAnalysis()
 	finalAction := performStrategies()
 	saveLastActions(finalAction)
-	performTrade(finalAction)
+	if PERFORM_TRADES {
+		performTrade(finalAction)
+	}
 	RestartAnalysis()
 }
 
