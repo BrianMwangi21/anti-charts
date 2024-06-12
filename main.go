@@ -27,16 +27,6 @@ func main() {
 				os.Exit(1)
 			}
 
-			ticker := time.NewTicker(30 * time.Second)
-			go func() {
-				for {
-					select {
-					case <-ticker.C:
-						analysis.CheckMetrics()
-					}
-				}
-			}()
-
 			// Start execution at multiples of 5 for symmetry
 			var currentTime time.Time
 			log.Info("Checking time...")
@@ -51,6 +41,16 @@ func main() {
 				time.Sleep(10 * time.Second)
 			}
 			log.Info(fmt.Sprintf("Time started %v", currentTime.Format(time.RFC3339)))
+
+			ticker := time.NewTicker(10 * time.Second)
+			go func() {
+				for {
+					select {
+					case <-ticker.C:
+						analysis.CheckMetrics()
+					}
+				}
+			}()
 
 			analysis.StartAnalysis(analysisRequest)
 		}
