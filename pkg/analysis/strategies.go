@@ -86,7 +86,11 @@ func performAllStrategies(asset *indicator.Asset, period int) indicator.Action {
 		STRATS[index].Action = lastAction
 	}
 
-	finalAction, buyP, sellP, holdP := aggregateResults()
+	totalN := float64(len(STRATS))
+	buyP := (float64(buys) / totalN) * 100
+	sellP := (float64(sells) / totalN) * 100
+	holdP := (float64(holds) / totalN) * 100
+	finalAction, aBuyP, aSellP, aHoldP := aggregateResults()
 
 	log.Info("Strategies Results By Weight...")
 	currentWeight := 6
@@ -97,7 +101,8 @@ func performAllStrategies(asset *indicator.Asset, period int) indicator.Action {
 		}
 		log.Info("STRATEGIES", "result", strat.Result)
 	}
-	log.Info(fmt.Sprintf("STRATEGIES Summary :: BUYS = %d [%.2f], SELLS = %d [%.2f], HOLDS = %d [%.2f]", buys, buyP, sells, sellP, holds, holdP))
+	log.Info(fmt.Sprintf("STRATEGIES Normal Summary :: BUYS = %d [%.2f], SELLS = %d [%.2f], HOLDS = %d [%.2f]", buys, buyP, sells, sellP, holds, holdP))
+	log.Info(fmt.Sprintf("STRATEGIES Weighted Summary :: BUYS = %d [%.2f], SELLS = %d [%.2f], HOLDS = %d [%.2f]", buys, aBuyP, sells, aSellP, holds, aHoldP))
 	log.Info(fmt.Sprintf("STRATEGIES FINAL ACTION :: %v", finalAction))
 
 	return finalAction
@@ -119,15 +124,15 @@ func aggregateResults() (indicator.Action, float64, float64, float64) {
 	}
 
 	totalP := float64(totalW)
-	buyP := (float64(buyW) / totalP) * 100
-	sellP := (float64(sellW) / totalP) * 100
-	holdP := (float64(holdW) / totalP) * 100
+	aBuyP := (float64(buyW) / totalP) * 100
+	aSellP := (float64(sellW) / totalP) * 100
+	aHoldP := (float64(holdW) / totalP) * 100
 
-	if buyP > sellP && buyP > holdP {
-		return indicator.BUY, buyP, sellP, holdP
-	} else if sellP > buyP && sellP > holdP {
-		return indicator.SELL, buyP, sellP, holdP
+	if aBuyP > aSellP && aBuyP > aHoldP {
+		return indicator.BUY, aBuyP, aSellP, aHoldP
+	} else if aSellP > aBuyP && aSellP > aHoldP {
+		return indicator.SELL, aBuyP, aSellP, aHoldP
 	} else {
-		return indicator.HOLD, buyP, sellP, holdP
+		return indicator.HOLD, aBuyP, aSellP, aHoldP
 	}
 }
