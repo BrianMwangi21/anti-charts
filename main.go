@@ -80,7 +80,7 @@ func main() {
 				minutes := currentTime.Minute()
 				seconds := currentTime.Second()
 
-				if (minutes+1)%5 == 0 && seconds > 57 {
+				if (minutes+1)%5 == 0 && seconds > 54 {
 					break
 				}
 
