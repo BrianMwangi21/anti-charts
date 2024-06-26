@@ -80,11 +80,11 @@ func main() {
 				minutes := currentTime.Minute()
 				seconds := currentTime.Second()
 
-				if minutes%5 == 0 && seconds < 5 {
+				if (minutes+1)%5 == 0 && seconds < 55 {
 					break
 				}
 
-				time.Sleep(5 * time.Second)
+				time.Sleep(1 * time.Second)
 			}
 			log.Info(fmt.Sprintf("Time started %v", currentTime.Format(time.RFC3339)))
 
